@@ -191,6 +191,8 @@ typedef struct single {
 				       at [0], bits to be cleared are at [1] */
 	    bool   dosourceport;
 	    uint16_t sourceport;	/* host byte order */
+	    bool   dosourceport_range;
+	    uint16_t sourceport_range[2];
 	    bool     lowport;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
 	    bool   dolibwrap;

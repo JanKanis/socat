@@ -16,6 +16,7 @@
 #include "xio-ipapp.h"
 
 const struct optdesc opt_sourceport = { "sourceport", "sp",       OPT_SOURCEPORT,  GROUP_IPAPP,     PH_LATE,TYPE_2BYTE,	OFUNC_SPEC };
+const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
 /*const struct optdesc opt_port = { "port",  NULL,    OPT_PORT,        GROUP_IPAPP, PH_BIND,    TYPE_USHORT,	OFUNC_SPEC };*/
 const struct optdesc opt_lowport = { "lowport", NULL, OPT_LOWPORT, GROUP_IPAPP, PH_LATE, TYPE_BOOL, OFUNC_SPEC };
 

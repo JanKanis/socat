@@ -41,6 +41,7 @@ enum e_types {
    TYPE_ULONG,		/* unsigned long */
    TYPE_USHORT,		/* unsigned short */
    TYPE_2BYTE = TYPE_USHORT,
+   TYPE_USHORT_USHORT,
    TYPE_MODET,		/* representation of mode_t */
    TYPE_GIDT,		/* representation of gid_t */
 
@@ -702,6 +703,7 @@ enum e_optcode {
    OPT_SOCKSUSER,
 #endif
    OPT_SOURCEPORT,
+   OPT_SOURCEPORT_RANGE,
    OPT_STDERR,		/* with exec, system */
 #  define ENABLE_OPTCODE
 #  include "xio-streams.h"
