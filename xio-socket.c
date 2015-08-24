@@ -1795,7 +1795,7 @@ int xiocheckrange(union sockaddr_union *sa, struct xiorange *range) {
 int xiocheckpeer(xiosingle_t *xfd,
 		 union sockaddr_union *pa, union sockaddr_union *la) {
    char infobuff[256];
-   int result;
+	 //   int result;
 
 #if WITH_IP4
    if (xfd->para.socket.dorange) {

@@ -249,7 +249,7 @@ int xioshutdown(xiofile_t *sock, int how) {
    shutting down the connection to give process some time to flush its output
    data */
 static int xioshut_sleep_kill(pid_t sub, unsigned long usec, int sig) {
-   struct sigaction act;
+	 //  struct sigaction act;
    int status = 0;
 
    /* we wait for the child process to die, but to prevent timeout

@@ -102,7 +102,7 @@ int _xioopen_progcall(int xioflags,	/* XIO_RDONLY etc. */
    bool useopenpty = false;	/* try only openpty */
 #endif	/* HAVE_OPENPTY */
    bool usepty = false;		/* any of the pty options is selected */
-   char ptyname[MAXPTYNAMELEN];
+	 //   char ptyname[MAXPTYNAMELEN];
 #endif /* HAVE_PTY */
    pid_t pid = 0;	/* mostly int */
    int leftfd[2] = { 0, 1 };
@@ -693,7 +693,7 @@ Warn1("xio-progcall.c: fd->howtoshut == %d", fd->howtoshut);
 	       /* we might have a temporary conflict between what FDs are
 		  currently allocated, and which are to be used. We try to find
 		  a graceful solution via temporary descriptors */
-	       int tmpi, tmpo;
+				//	       int tmpi, tmpo;
 
 	       /* needed with system() (not with exec()) */
 	       if (XIOWITHRD(rw))  Close(rdpip[0]);

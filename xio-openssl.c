@@ -253,7 +253,7 @@ static int
 					   addr_openssl */
 {
    struct single *xfd = &xxfd->stream;
-   int rw = (xioflags&XIO_ACCMODE);
+	 //   int rw = (xioflags&XIO_ACCMODE);
    struct opt *opts0 = NULL;
    const char *hostname, *portname = NULL;
    int pf = PF_UNSPEC;
