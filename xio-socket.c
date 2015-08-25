@@ -302,7 +302,7 @@ int xioopen_socket_connect(int argc, const char *argv[], struct opt *opts,
 	xioopen_connect(xfd,
 			needbind?(struct sockaddr *)&us:NULL, uslen,
 			(struct sockaddr *)&them, themlen,
-			opts, pf, socktype, proto, false)) != 0) {
+			opts, pf, socktype, proto, NULL)) != 0) {
       return result;
    }
    if (XIOWITHWR(rw))   xfd->wfd = xfd->rfd;
@@ -753,7 +753,7 @@ int xioopen_socket_datagram(int argc, const char *argv[], struct opt *opts,
 int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		     struct sockaddr *them, size_t themlen,
 		     struct opt *opts, int pf, int socktype, int protocol,
-		     bool alt, int level) {
+		     struct portrange *sourceport_range, int level) {
    int fcntl_flags = 0;
    char infobuff[256];
    union sockaddr_union la;
@@ -774,7 +774,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
    applyopts(xfd->rfd, opts, PH_PREBIND);
    applyopts(xfd->rfd, opts, PH_BIND);
 #if WITH_TCP || WITH_UDP
-   if (alt) {
+   if (sourceport_range) {
       union sockaddr_union sin, *sinp;
       unsigned short *port, i, N;
       div_t dv;
@@ -977,7 +977,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 		    struct sockaddr *them, size_t themlen,
 		    struct opt *opts, int pf, int socktype, int protocol,
-		    bool alt) {
+		    struct portrange *sourceport_range) {
    bool dofork = false;
    struct opt *opts0;
    char infobuff[256];
@@ -1001,7 +1001,7 @@ int xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	 level = E_ERROR;
       result =
 	 _xioopen_connect(xfd, us, uslen, them, themlen, opts,
-			  pf, socktype, protocol, alt, level);
+			  pf, socktype, protocol, sourceport_range, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY

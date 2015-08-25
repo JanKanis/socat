@@ -11,6 +11,7 @@
 
 
 extern const struct optdesc opt_sourceport;
+extern const struct optdesc opt_sourceport_range;
 /*extern const struct optdesc opt_port;*/
 extern const struct optdesc opt_lowport;
 

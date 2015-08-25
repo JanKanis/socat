@@ -297,6 +297,12 @@ typedef struct {
 
 #define MAXARGV 8
 
+struct portrange_opt
+  {
+    ushort low;
+    ushort high;
+  };
+
 /* a non-dual file descriptor */ 
 typedef struct single {
    enum xiotag tag;	/* see  enum xiotag  */
@@ -385,6 +391,8 @@ typedef struct single {
 				       at [0], bits to be cleared are at [1] */
 	    bool   dosourceport;
 	    uint16_t sourceport;	/* host byte order */
+	    bool   dosourceport_range;
+	    struct portrange_opt sourceport_range;
 	    bool     lowport;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
 	    bool   dolibwrap;

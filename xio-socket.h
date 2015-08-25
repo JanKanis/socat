@@ -70,6 +70,12 @@ extern const struct optdesc opt_setsockopt_string;
 extern const struct optdesc opt_null_eof;
 
 
+struct portrange
+  {
+    ushort low;
+    ushort high;
+  };
+
 extern
 char *xiogetifname(int ind, char *val, int ins);
 
@@ -80,13 +86,13 @@ extern int xioopen_connect(struct single *fd,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			   int pf, int socktype, int protocol,
-			    bool alt);
+			    struct portrange *sourceport_range);
 extern int _xioopen_connect(struct single *fd,
 			    struct sockaddr *us, size_t uslen,
 			    struct sockaddr *them, size_t themlen,
 			    struct opt *opts,
 			    int pf, int socktype, int protocol,
-			    bool alt, int level);
+			    struct portrange *sourceport_range, int level);
 
 /* common to xioopen_udp_sendto, ..unix_sendto, ..rawip */
 extern 

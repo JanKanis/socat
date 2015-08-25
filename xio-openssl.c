@@ -265,7 +265,7 @@ static int
    socklen_t uslen = sizeof(us_sa);
    socklen_t themlen = sizeof(them_sa);
    bool needbind = false;
-   bool lowport = false;
+   struct portrange sourceport_range_pr, *sourceport_range = &sourceport_range_pr;
    int level;
    /*0 SSL_CTX* ctx;*/
    bool opt_ver = true;	/* verify peer certificate */
@@ -318,7 +318,7 @@ static int
 				xfd->para.socket.ip.res_opts[1],
 				xfd->para.socket.ip.res_opts[0],
 				them, &themlen, us, &uslen,
-				&needbind, &lowport, socktype);
+				&needbind, &sourceport_range, socktype);
       if (result != STAT_OK)  return STAT_NORETRY;
    } else if (argc == 1) {
 
@@ -370,7 +370,7 @@ static int
 	 _xioopen_connect(xfd,
 			  needbind?(struct sockaddr *)us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
-			  opts, pf, socktype, ipproto, lowport, level);
+			  opts, pf, socktype, ipproto, sourceport_range, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY

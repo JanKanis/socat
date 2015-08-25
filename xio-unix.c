@@ -272,7 +272,7 @@ static int xioopen_unix_connect(int argc, const char *argv[], struct opt *opts, 
 	xioopen_connect(xfd,
 			needbind?(struct sockaddr *)&us:NULL, uslen,
 			(struct sockaddr *)&them, themlen,
-			opts, pf, socktype, protocol, false)) != 0) {
+			opts, pf, socktype, protocol, NULL)) != 0) {
       return result;
    }
    if (XIOWITHWR(rw))   xfd->wfd = xfd->rfd;
@@ -593,7 +593,7 @@ _xioopen_unix_client(xiosingle_t *xfd, int xioflags, unsigned groups,
 			needbind?(struct sockaddr *)&us:NULL, uslen,
 			(struct sockaddr *)&them, themlen,
 			opts, pf, socktype?socktype:SOCK_STREAM, protocol,
-			false)) != 0) {
+			NULL)) != 0) {
       if (errno == EPROTOTYPE) {
 	 if (needbind) {
 	    Unlink(us.un.sun_path);

@@ -16,6 +16,7 @@
 #include "xio-ipapp.h"
 
 const struct optdesc opt_sourceport = { "sourceport", "sp",       OPT_SOURCEPORT,  GROUP_IPAPP,     PH_LATE,TYPE_2BYTE,	OFUNC_SPEC };
+const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
 /*const struct optdesc opt_port = { "port",  NULL,    OPT_PORT,        GROUP_IPAPP, PH_BIND,    TYPE_USHORT,	OFUNC_SPEC };*/
 const struct optdesc opt_lowport = { "lowport", NULL, OPT_LOWPORT, GROUP_IPAPP, PH_LATE, TYPE_BOOL, OFUNC_SPEC };
 
@@ -35,7 +36,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
    socklen_t uslen = sizeof(us_sa);
    socklen_t themlen = sizeof(them_sa);
    bool needbind = false;
-   bool lowport = false;
+   struct portrange sourceport_range_pr, *sourceport_range = &sourceport_range_pr;
    int level;
    int result;
 
@@ -51,7 +52,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
    if (_xioopen_ipapp_prepare(opts, &opts0, hostname, portname, &pf, ipproto,
 			      xfd->para.socket.ip.res_opts[1],
 			      xfd->para.socket.ip.res_opts[0],
-			      them, &themlen, us, &uslen, &needbind, &lowport,
+			      them, &themlen, us, &uslen, &needbind, &sourceport_range,
 			      socktype) != STAT_OK) {
       return STAT_NORETRY;
    }
@@ -80,7 +81,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 	 _xioopen_connect(xfd,
 			  needbind?(struct sockaddr *)us:NULL, uslen,
 			  (struct sockaddr *)them, themlen,
-			  opts, pf, socktype, ipproto, lowport, level);
+			  opts, pf, socktype, ipproto, sourceport_range, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY
@@ -163,7 +164,7 @@ int
 			   unsigned long res_opts0, unsigned long res_opts1,
 			   union sockaddr_union *them, socklen_t *themlen,
 			   union sockaddr_union *us, socklen_t *uslen,
-			   bool *needbind, bool *lowport,
+			   bool *needbind, struct portrange **sourceport_range,
 			   int socktype) {
    uint16_t port;
    char infobuff[256];
@@ -215,7 +216,14 @@ int
       *needbind = true;
    }
 
-   retropt_bool(opts, OPT_LOWPORT, lowport);
+   bool lowport = false;
+   retropt_bool(opts, OPT_LOWPORT, &lowport);
+   if(lowport) {
+	   *sourceport_range->low = XIO_IPPORT_LOWER;
+	   *sourceport_range->high = IPPORT_RESERVED;
+   } else {
+	   *sourceport_range = NULL;
+   }
 
    *opts0 = copyopts(opts, GROUP_ALL);
 

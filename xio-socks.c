@@ -72,7 +72,7 @@ static int xioopen_socks4_connect(int argc, const char *argv[], struct opt *opts
    socklen_t uslen = sizeof(us_sa);
    socklen_t themlen = sizeof(them_sa);
    bool needbind = false;
-   bool lowport = false;
+   struct portrange sourceport_range_pr, *sourceport_range = &sourceport_range_pr;
    unsigned char buff[BUFF_LEN];
    struct socks4request *sockhead = (struct socks4request *)buff;
    size_t buflen = sizeof(buff);
@@ -120,7 +120,7 @@ static int xioopen_socks4_connect(int argc, const char *argv[], struct opt *opts
 			     xfd->para.socket.ip.res_opts[1],
 			     xfd->para.socket.ip.res_opts[0],
 			     them, &themlen, us, &uslen,
-			     &needbind, &lowport, socktype);
+			     &needbind, &sourceport_range, socktype);
    if (result != STAT_OK)  return result;
 
    Notice5("opening connection to %s:%u via socks4 server %s:%s as user \"%s\"",
@@ -166,7 +166,7 @@ static int xioopen_socks4_connect(int argc, const char *argv[], struct opt *opts
 	 _xioopen_connect (xfd,
 			   needbind?(struct sockaddr *)us:NULL, sizeof(*us),
 			   (struct sockaddr *)them, themlen,
-			   opts, pf, socktype, IPPROTO_TCP, lowport, level);
+			   opts, pf, socktype, IPPROTO_TCP, sourceport_range, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY

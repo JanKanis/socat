@@ -161,7 +161,7 @@ static int xioopen_proxy_connect3(int argc, const char *argv[], struct opt *opts
    socklen_t themlen = sizeof(them_sa);
    int ipproto = IPPROTO_TCP;
    bool needbind = false;
-   bool lowport = false;
+   struct portrange sourceport_range_pr, *sourceport_range = &sourceport_range_pr;
    int level;
    int result;
 
@@ -201,7 +201,7 @@ static int xioopen_proxy_connect3(int argc, const char *argv[], struct opt *opts
 			     xfd->para.socket.ip.res_opts[1],
 			     xfd->para.socket.ip.res_opts[0],
 			     them, &themlen, us, &uslen,
-			     &needbind, &lowport, socktype);
+			     &needbind, &sourceport_range, socktype);
    if (result != STAT_OK)  return result;
    Notice4("opening connection to %s:%u via proxy %s:%s",
 	   proxyvars->targetaddr, proxyvars->targetport, proxyname, proxyport);
@@ -219,7 +219,7 @@ static int xioopen_proxy_connect3(int argc, const char *argv[], struct opt *opts
 	   _xioopen_connect(xfd,
 			    needbind?(struct sockaddr *)us:NULL, sizeof(*us),
 			    (struct sockaddr *)them, themlen,
-			    opts, pf, socktype, IPPROTO_TCP, lowport, level);
+			    opts, pf, socktype, IPPROTO_TCP, sourceport_range, level);
       switch (result) {
       case STAT_OK: break;
 #if WITH_RETRY
