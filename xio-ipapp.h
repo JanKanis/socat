@@ -12,6 +12,7 @@
 
 extern const struct optdesc opt_sourceport;
 extern const struct optdesc opt_sourceport_range;
+struct portrange;
 /*extern const struct optdesc opt_port;*/
 extern const struct optdesc opt_lowport;
 
@@ -25,7 +26,7 @@ extern int
 			   unsigned long res_opts0, unsigned long res_opts1,
 			   union sockaddr_union *them, socklen_t *themlen,
 			   union sockaddr_union *us,  socklen_t *uslen,
-			   bool *needbind, bool *lowport,
+			   bool *needbind, struct portrange **sourceport_range,
 			   int socktype);
 extern int _xioopen_ip4app_connect(const char *hostname, const char *portname,
 				   struct single *xfd,

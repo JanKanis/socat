@@ -16,7 +16,7 @@
 #include "xio-ipapp.h"
 
 const struct optdesc opt_sourceport = { "sourceport", "sp",       OPT_SOURCEPORT,  GROUP_IPAPP,     PH_LATE,TYPE_2BYTE,	OFUNC_SPEC };
-const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
+const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT_RANGE, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
 /*const struct optdesc opt_port = { "port",  NULL,    OPT_PORT,        GROUP_IPAPP, PH_BIND,    TYPE_USHORT,	OFUNC_SPEC };*/
 const struct optdesc opt_lowport = { "lowport", NULL, OPT_LOWPORT, GROUP_IPAPP, PH_LATE, TYPE_BOOL, OFUNC_SPEC };
 
@@ -153,7 +153,7 @@ int xioopen_ipapp_connect(int argc, const char *argv[], struct opt *opts,
 /* returns STAT_OK on success or some other value on failure
    applies and consumes the following options:
    PH_EARLY
-   OPT_PROTOCOL_FAMILY, OPT_BIND, OPT_SOURCEPORT, OPT_LOWPORT
+   OPT_PROTOCOL_FAMILY, OPT_BIND, OPT_SOURCEPORT, OPT_SOURCEPORT_RANGE, OPT_LOWPORT
  */
 int
    _xioopen_ipapp_prepare(struct opt *opts, struct opt **opts0,
@@ -218,9 +218,9 @@ int
 
    bool lowport = false;
    retropt_bool(opts, OPT_LOWPORT, &lowport);
-   if(lowport) {
-	   *sourceport_range->low = XIO_IPPORT_LOWER;
-	   *sourceport_range->high = IPPORT_RESERVED;
+   if (lowport) {
+	   (*sourceport_range)->low = XIO_IPPORT_LOWER;
+	   (*sourceport_range)->high = IPPORT_RESERVED;
    } else {
 	   *sourceport_range = NULL;
    }
