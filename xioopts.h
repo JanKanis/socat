@@ -40,7 +40,6 @@ enum e_types {
 
    TYPE_ULONG,		/* unsigned long */
    TYPE_USHORT,		/* unsigned short */
-   TYPE_2BYTE = TYPE_USHORT,
    TYPE_USHORT_USHORT,
    TYPE_MODET,		/* representation of mode_t */
    TYPE_GIDT,		/* representation of gid_t */
