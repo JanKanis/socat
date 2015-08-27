@@ -1966,6 +1966,33 @@ int parseopts_table(const char **a, struct opt **opts,
 	 Info2("setting option \"%s\" to %u", ent->desc->defname,
 	       (*opts)[i].value.u_ushort);
 	 break;
+      case TYPE_USHORT_USHORT:
+	 if (!assign) {
+	    Error1("option \"%s\": values required", a0);
+	    continue;
+	 } else {
+	    char *rest;
+	    ulongval = strtoul(token, &rest, 0);
+	    if (ulongval > USHRT_MAX) {
+	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
+		      a0, ulongval, USHRT_MAX);
+	    }
+	    (*opts)[i].value.u_ushort = ulongval;
+	    if (*rest != ':') {
+	       Error1("option \"%s\": 2 arguments required",
+		      ent->desc->defname);
+	    }
+	    ++rest;
+	    ulongval = strtoul(token, &rest, 0);
+	    if (ulongval > USHRT_MAX) {
+	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
+		      a0, ulongval, USHRT_MAX);
+	    }
+	    (*opts)[i].value2.u_ushort = ulongval;
+	 }
+	 Info3("setting option \"%s\" to %d:%d", ent->desc->defname,
+	       (*opts)[i].value.u_int, (*opts)[i].value2.u_int);
+	 break;
 
 #if HAVE_BASIC_OFF_T==5
       case TYPE_OFF32:
