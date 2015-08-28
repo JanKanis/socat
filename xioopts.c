@@ -2741,6 +2741,26 @@ int retropt_ushort(struct opt *opts, int optcode, unsigned short *result) {
 }
 
 /* Looks for the first option of type <optcode>. If the option is found,
+   this function stores its unsigned short values in *result1 and *result2,
+   "consumes" the option, and returns 0.
+   If the option is not found, *result{1,2} is not modified, and -1 is returned. */
+int retropt_ushort_ushort(struct opt *opts, int optcode,
+			  unsigned short *result1, unsigned short *result2) {
+   struct opt *opt = opts;
+
+   while (opt->desc != ODESC_END) {
+      if (opt->desc != ODESC_DONE && opt->desc->optcode == optcode) {
+	 *result1 = opt->value.u_ushort;
+	 *result2 = opt->value2.u_ushort;
+	 opt->desc = ODESC_DONE;
+	 return 0;
+      }
+      ++opt;
+   }
+   return -1;
+}
+
+/* Looks for the first option of type <optcode>. If the option is found,
    this function stores its int value in *result, "consumes" the
    option, and returns 0.
    If the option is not found, *result is not modified, and -1 is returned. */

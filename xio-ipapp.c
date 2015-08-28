@@ -169,6 +169,9 @@ int
    uint16_t port;
    char infobuff[256];
    int result;
+   int portoptions = 0;
+   bool use_sourceport_range = false;
+   bool lowport = false;
 
    retropt_socket_pf(opts, pf);
 
@@ -213,16 +216,32 @@ int
 #endif /* WITH_IP6 */
       default: Error("unsupported protocol family");
       }
+      portoptions++;
       *needbind = true;
    }
 
-   bool lowport = false;
+
    retropt_bool(opts, OPT_LOWPORT, &lowport);
    if (lowport) {
-	   (*sourceport_range)->low = XIO_IPPORT_LOWER;
-	   (*sourceport_range)->high = IPPORT_RESERVED;
-   } else {
-	   *sourceport_range = NULL;
+      (*sourceport_range)->low = XIO_IPPORT_LOWER;
+      (*sourceport_range)->high = IPPORT_RESERVED;
+      use_sourceport_range = true;
+      portoptions++;
+   }
+
+   if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
+			     &(*sourceport_range)->low,
+			     &(*sourceport_range)->high) >= 0) {
+      use_sourceport_range = true;
+      portoptions++;
+   }
+
+   if (!use_sourceport_range) {
+      *sourceport_range = NULL;
+   }
+
+   if (portoptions > 1) {
+      Error("Conflicting source port options used, use only one of: lowport, sourceport, sourceport_range");
    }
 
    *opts0 = copyopts(opts, GROUP_ALL);
