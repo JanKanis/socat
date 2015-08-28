@@ -209,7 +209,16 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
    if (retropt_ushort(opts, OPT_SOURCEPORT, &xfd->para.socket.ip.sourceport) >= 0) {
       xfd->para.socket.ip.dosourceport = true;
    }
-   retropt_bool(opts, OPT_LOWPORT, &xfd->para.socket.ip.lowport);
+   int portopts_cnt =
+      (retropt_lowport(opts, &xfd->para.socket.ip.sourceport_range) >= 0) +
+      (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
+			     &xfd->para.socket.ip.sourceport_range.low,
+			     &xfd->para.socket.ip.sourceport_range.high) >= 0);
+   if (portopts_cnt == 1) {
+      xfd->para.socket.ip.dosourceport_range = true;
+   } else if (portopts_cnt > 1) {
+      Error("Can not use options 'lowport' and 'sourceport_range' at the same time");
+   }
 #endif /* WITH_TCP || WITH_UDP */
 
    retropt_int(opts, OPT_BACKLOG, &backlog);

@@ -70,12 +70,6 @@ extern const struct optdesc opt_setsockopt_string;
 extern const struct optdesc opt_null_eof;
 
 
-struct portrange
-  {
-    ushort low;
-    ushort high;
-  };
-
 extern
 char *xiogetifname(int ind, char *val, int ins);
 

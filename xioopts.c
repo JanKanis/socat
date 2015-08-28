@@ -2762,6 +2762,21 @@ int retropt_ushort_ushort(struct opt *opts, int optcode,
    return -1;
 }
 
+/* Looks for the first option of type OPT_LOWPORT. If the option is found,
+   this function stores the appropriate portrange in sourceport_range,
+   "consumes" the option, and returns 0.
+   If the option is not found, *sourceport_range is not modified, and -1 is
+   returned. */
+int retropt_lowport(struct opt *opts, struct portrange *sourceport_range) {
+   bool lowport = false;
+   retropt_bool(opts, OPT_LOWPORT, &lowport);
+   if (lowport) {
+      *sourceport_range = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
+      return 0;
+   }
+   return -1;
+}
+
 /* Looks for the first option of type <optcode>. If the option is found,
    this function stores its int value in *result, "consumes" the
    option, and returns 0.

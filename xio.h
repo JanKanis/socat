@@ -297,7 +297,7 @@ typedef struct {
 
 #define MAXARGV 8
 
-struct portrange_opt
+struct portrange
   {
     ushort low;
     ushort high;
@@ -392,8 +392,7 @@ typedef struct single {
 	    bool   dosourceport;
 	    uint16_t sourceport;	/* host byte order */
 	    bool   dosourceport_range;
-	    struct portrange_opt sourceport_range;
-	    bool     lowport;
+	    struct portrange sourceport_range;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
 	    bool   dolibwrap;
 	    char    *libwrapname;

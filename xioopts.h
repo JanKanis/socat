@@ -933,6 +933,7 @@ extern int retropt_bind(struct opt *opts,
 		 int feats,	/* TCP etc: 1..address allowed,
 				   3..address and port allowed */
 		 unsigned long res_opts0, unsigned long res_opts1);
+extern int retropt_lowport(struct opt *opts, struct portrange *sourceport_range);
 extern int applyopts(int fd, struct opt *opts, enum e_phase phase);
 extern int applyopts2(int fd, struct opt *opts, unsigned int from,
 		      unsigned int to);

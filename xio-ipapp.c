@@ -171,7 +171,6 @@ int
    int result;
    int portopts_cnt = 0;
    bool use_sourceport_range = false;
-   bool lowport = false;
 
    retropt_socket_pf(opts, pf);
 
@@ -220,10 +219,7 @@ int
       *needbind = true;
    }
 
-
-   retropt_bool(opts, OPT_LOWPORT, &lowport);
-   if (lowport) {
-      **sourceport_range = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
+   if (retropt_lowport(opts, *sourceport_range) >= 0) {
       use_sourceport_range = true;
       portopts_cnt++;
    }

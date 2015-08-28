@@ -1837,28 +1837,30 @@ int xiocheckpeer(xiosingle_t *xfd,
       Info1("permitting connection from %s due to sourceport option",
 	    sockaddr_info((struct sockaddr *)pa, 0,
 			  infobuff, sizeof(infobuff)));
-   } else if (xfd->para.socket.ip.lowport) {
+   } else if (xfd->para.socket.ip.dosourceport_range) {
       if (pa == NULL)  { return -1; }
-      if (pa->soa.sa_family == AF_INET &&
-	  ntohs(((struct sockaddr_in *)pa)->sin_port) >= IPPORT_RESERVED) {
-	 Warn1("refusing connection from %s due to lowport option",
-	       sockaddr_info((struct sockaddr *)pa, 0,
-			     infobuff, sizeof(infobuff)));
-	 return -1;
-      }
+      int port = -1;
+      switch (pa->soa.sa_family) {
+      case AF_INET:
+	 port = ntohs(((struct sockaddr_in *)pa)->sin_port); break;
 #if WITH_IP6
-      else if (pa->soa.sa_family == AF_INET6 &&
-	       ntohs(((struct sockaddr_in6 *)pa)->sin6_port) >=
-	       IPPORT_RESERVED) {
-	 Warn1("refusing connection from %s due to lowport option",
+      case AF_INET6:
+	 port = ntohs(((struct sockaddr_in6 *)pa)->sin6_port); break;
+#endif /* WITH_IP6 */
+      }
+      if (port != -1) {
+	 if (port < xfd->para.socket.ip.sourceport_range.low ||
+	     port > xfd->para.socket.ip.sourceport_range.high) {
+	    Warn1("refusing connection from %s due to lowport or sourceport_range option",
+		  sockaddr_info((struct sockaddr *)pa, 0,
+				infobuff, sizeof(infobuff)));
+	    return -1;
+	 }
+      } else {
+	 Info1("permitting connection from %s due to lowport and sourceport_range options",
 	       sockaddr_info((struct sockaddr *)pa, 0,
 			     infobuff, sizeof(infobuff)));
-	 return -1;
       }
-#endif /* WITH_IP6 */
-      Info1("permitting connection from %s due to lowport option",
-	    sockaddr_info((struct sockaddr *)pa, 0,
-			  infobuff, sizeof(infobuff)));
    }
 #endif /* WITH_TCP || WITH_UDP */
 
