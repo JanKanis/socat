@@ -1974,16 +1974,18 @@ int parseopts_table(const char **a, struct opt **opts,
 	    char *rest;
 	    ulongval = strtoul(token, &rest, 0);
 	    if (ulongval > USHRT_MAX) {
-	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
+	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u)",
 		      a0, ulongval, USHRT_MAX);
 	    }
 	    (*opts)[i].value.u_ushort = ulongval;
 	    if (*rest != ':') {
 	       Error1("option \"%s\": 2 arguments required",
 		      ent->desc->defname);
+	       (*opts)[i].value2.u_ushort = ulongval;
+	       break;
 	    }
 	    ++rest;
-	    ulongval = strtoul(token, &rest, 0);
+	    ulongval = strtoul(rest, &rest, 0);
 	    if (ulongval > USHRT_MAX) {
 	       Error3("parseopts(%s): unsigned short value exceeds limit (%lu vs. %u), using max",
 		      a0, ulongval, USHRT_MAX);

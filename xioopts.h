@@ -915,6 +915,8 @@ extern const struct optname optionnames[];
 extern int retropt_bool(struct opt *opts, int optcode, bool *result);
 extern int retropt_short(struct opt *opts, int optcode, short *result);
 extern int retropt_ushort(struct opt *opts, int optcode, unsigned short *result);
+extern int retropt_ushort_ushort(struct opt *opts, int optcode,
+				 unsigned short *result1, unsigned short *result2);
 extern int retropt_int(struct opt *opts, int optcode, int *result);
 extern int retropt_uint(struct opt *opts, int optcode, unsigned int *result);
 extern int retropt_long(struct opt *opts, int optcode, long *result);

@@ -823,8 +823,8 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	 srandom(tv.tv_sec*1000000+tv.tv_usec);
 #endif
       }
-      dv = div(random(), IPPORT_RESERVED-XIO_IPPORT_LOWER);
-      i = N = XIO_IPPORT_LOWER + dv.rem;
+      dv = div(random(), sourceport_range->high+1 - sourceport_range->low);
+      i = N = sourceport_range->low + dv.rem;
       do {	/* loop over lowport bind() attempts */
 	 *port = htons(i);
 	 if (Bind(xfd->rfd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
@@ -839,9 +839,9 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 	 } else {
 	    break;	/* could bind to port, good, continue past loop */
 	 }
-	 --i;  if (i < XIO_IPPORT_LOWER)  i = IPPORT_RESERVED-1;
+	 --i;  if (i < sourceport_range->low)  i = sourceport_range->high;
 	 if (i == N) {
-	    Msg(level, "no low port available");
+	    Msg2(level, "no port available in range %hu:%hu", sourceport_range->low, sourceport_range->high);
 	    /*errno = EADDRINUSE; still assigned */
 	    Close(xfd->rfd);
 	    return STAT_RETRYLATER;

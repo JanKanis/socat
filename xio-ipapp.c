@@ -169,7 +169,7 @@ int
    uint16_t port;
    char infobuff[256];
    int result;
-   int portoptions = 0;
+   int portopts_cnt = 0;
    bool use_sourceport_range = false;
    bool lowport = false;
 
@@ -216,31 +216,34 @@ int
 #endif /* WITH_IP6 */
       default: Error("unsupported protocol family");
       }
-      portoptions++;
+      portopts_cnt++;
       *needbind = true;
    }
 
 
    retropt_bool(opts, OPT_LOWPORT, &lowport);
    if (lowport) {
-      (*sourceport_range)->low = XIO_IPPORT_LOWER;
-      (*sourceport_range)->high = IPPORT_RESERVED;
+      **sourceport_range = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
       use_sourceport_range = true;
-      portoptions++;
+      portopts_cnt++;
    }
 
-   if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
-			     &(*sourceport_range)->low,
-			     &(*sourceport_range)->high) >= 0) {
+   ushort low, high;
+   if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE, &low, &high) >= 0) {
+      if(high < low) {
+	 Error2("sourceport_range: second argument should be equal or larger than first argument: %hu:%hu", low, high);
+	 high = low;
+      }
+      **sourceport_range = (struct portrange) {low, high};
       use_sourceport_range = true;
-      portoptions++;
+      portopts_cnt++;
    }
 
    if (!use_sourceport_range) {
       *sourceport_range = NULL;
    }
 
-   if (portoptions > 1) {
+   if (portopts_cnt > 1) {
       Error("Conflicting source port options used, use only one of: lowport, sourceport, sourceport_range");
    }
 
