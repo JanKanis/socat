@@ -389,8 +389,6 @@ typedef struct single {
 	 struct {
 	    unsigned int res_opts[2];	/* bits to be set in _res.options are
 				       at [0], bits to be cleared are at [1] */
-//	    bool   dosourceport;
-//	    uint16_t sourceport;	/* host byte order */
 	    bool   dosourceport_range;
 	    struct portrange sourceport_range;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP

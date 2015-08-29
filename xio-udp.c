@@ -175,21 +175,9 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    xio_retropt_tcpwrap(&fd->stream, opts);
 #endif /* WITH_LIBWRAP */
 
-   if (retropt_ushort(opts, OPT_SOURCEPORT, &fd->stream.para.socket.ip.sourceport)
-       >= 0) {
-      fd->stream.para.socket.ip.dosourceport = true;
-   }
-   int portopts_cnt =
-      (retropt_lowport(opts, &fd->stream.para.socket.ip.sourceport_range) >= 0) +
-      (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
-			     &fd->stream.para.socket.ip.sourceport_range.low,
-			     &fd->stream.para.socket.ip.sourceport_range.high) >= 0);
-   if (portopts_cnt == 1) {
-      fd->stream.para.socket.ip.dosourceport_range = true;
-   } else if (portopts_cnt > 1) {
-      Error("Can not use options 'lowport' and 'sourceport_range' at the same time");
-   }
-   //retropt_bool(opts, OPT_LOWPORT, &fd->stream.para.socket.ip.lowport);
+   applyopts_sourceport(opts,
+			&fd->stream.para.socket.ip.sourceport_range,
+			&fd->stream.para.socket.ip.dosourceport_range);
 
    if (dofork) {
       xiosetchilddied();	/* set SIGCHLD handler */
