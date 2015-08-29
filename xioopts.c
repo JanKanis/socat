@@ -2762,21 +2762,6 @@ int retropt_ushort_ushort(struct opt *opts, int optcode,
    return -1;
 }
 
-/* Looks for the first option of type OPT_LOWPORT. If the option is found,
-   this function stores the appropriate portrange in sourceport_range,
-   "consumes" the option, and returns 0.
-   If the option is not found, *sourceport_range is not modified, and -1 is
-   returned. */
-int retropt_lowport(struct opt *opts, struct portrange *sourceport_range) {
-   bool lowport = false;
-   retropt_bool(opts, OPT_LOWPORT, &lowport);
-   if (lowport) {
-      *sourceport_range = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
-      return 0;
-   }
-   return -1;
-}
-
 /* Looks for the first option of type <optcode>. If the option is found,
    this function stores its int value in *result, "consumes" the
    option, and returns 0.
@@ -3980,6 +3965,44 @@ int applyopts_offset(struct single *xfd, struct opt *opts) {
       applyopt_offset(xfd, opt);
       opt->desc = ODESC_DONE;
       ++opt;
+   }
+   return 0;
+}
+
+/* Applies and consumes options OPT_LOWPORT, OPT_SOURCEPORT and OPT_SOURCEPORT_RANGE
+ * into a struct portrange * and a bool.
+ */
+int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourceport) {
+   int sourceportopts_cnt = 0;
+
+   if (retropt_ushort(opts, OPT_SOURCEPORT, pr->low) >=0) {
+      pr->high = pr->low;
+      sourceportopts_cnt++;
+   }
+
+   bool lowport = false;
+   retropt_bool(opts, OPT_LOWPORT, &lowport);
+   if (lowport) {
+      *pr = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
+      sourceportopts_cnt++;
+   }
+
+   if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
+			     &pr->low, &pr->high) >= 0) {
+      if(&pr->high < &pr->low) {
+	 Error2("sourceport_range: second argument should be equal or larger than first argument: %hu:%hu", pr->low, pr->high);
+	 pr->high = pr->low;
+      }
+      sourceportopts_cnt++;
+   }
+
+   if (sourceportopts_cnt == 0) {
+      *dosourceport = false;
+   } else if (sourceportopts_cnt == 1) {
+      *dosourceport = true;
+   } else if (sourceportopts_cnt > 1) {
+      Error("Conflicting options: can not use options 'lowport', 'sourceport' and 'sourceport_range' on the same address");
+      return -1;
    }
    return 0;
 }

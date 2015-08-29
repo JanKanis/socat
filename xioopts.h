@@ -933,7 +933,6 @@ extern int retropt_bind(struct opt *opts,
 		 int feats,	/* TCP etc: 1..address allowed,
 				   3..address and port allowed */
 		 unsigned long res_opts0, unsigned long res_opts1);
-extern int retropt_lowport(struct opt *opts, struct portrange *sourceport_range);
 extern int applyopts(int fd, struct opt *opts, enum e_phase phase);
 extern int applyopts2(int fd, struct opt *opts, unsigned int from,
 		      unsigned int to);
@@ -941,6 +940,7 @@ extern int applyopts_flags(struct opt *opts, int group, flags_t *result);
 extern int applyopts_cloexec(int fd, struct opt *opts);
 extern int applyopts_early(const char *path, struct opt *opts);
 extern int applyopts_fchown(int fd, struct opt *opts);
+extern int applyopts_sourceport(struct opt *opts, struct portrange *sourceport_range, bool *dosourceport);
 extern int applyopts_single(struct single *fd, struct opt *opts, enum e_phase phase);
 extern int applyopts_offset(struct single *xfd, struct opt *opts);
 extern int applyopts_signal(struct single *xfd, struct opt *opts);

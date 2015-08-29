@@ -169,7 +169,6 @@ int
    uint16_t port;
    char infobuff[256];
    int result;
-   int portopts_cnt = 0;
    bool use_sourceport_range = false;
 
    retropt_socket_pf(opts, pf);
@@ -205,42 +204,11 @@ int
       }
    }
 
-   if (retropt_2bytes(opts, OPT_SOURCEPORT, &port) >= 0) {
-      switch (*pf) {
-#if WITH_IP4
-      case PF_INET:  us->ip4.sin_port = htons(port); break;
-#endif /* WITH_IP4 */
-#if WITH_IP6
-      case PF_INET6: us->ip6.sin6_port = htons(port); break;
-#endif /* WITH_IP6 */
-      default: Error("unsupported protocol family");
-      }
-      portopts_cnt++;
+   applyopts_sourceport(opts, *sourceport_range, &use_sourceport_range);
+   if (use_sourceport_range) {
       *needbind = true;
-   }
-
-   if (retropt_lowport(opts, *sourceport_range) >= 0) {
-      use_sourceport_range = true;
-      portopts_cnt++;
-   }
-
-   ushort low, high;
-   if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE, &low, &high) >= 0) {
-      if(high < low) {
-	 Error2("sourceport_range: second argument should be equal or larger than first argument: %hu:%hu", low, high);
-	 high = low;
-      }
-      **sourceport_range = (struct portrange) {low, high};
-      use_sourceport_range = true;
-      portopts_cnt++;
-   }
-
-   if (!use_sourceport_range) {
+   } else {
       *sourceport_range = NULL;
-   }
-
-   if (portopts_cnt > 1) {
-      Error("Conflicting source port options used, use only one of: lowport, sourceport, sourceport_range");
    }
 
    *opts0 = copyopts(opts, GROUP_ALL);
