@@ -206,7 +206,7 @@ int _xioopen_listen(struct single *xfd, int xioflags, struct sockaddr *us, sockl
 #endif /* && (WITH_TCP || WITH_UDP) && WITH_LIBWRAP */
 
 #if WITH_TCP || WITH_UDP
-   applyopt_sourceport(opts, &xfd->para.socket.ip.sourceport_range,
+   applyopts_sourceport(opts, &xfd->para.socket.ip.sourceport_range,
 	 &xfd->para.socket.ip.dosourceport_range);
 #endif /* WITH_TCP || WITH_UDP */
 

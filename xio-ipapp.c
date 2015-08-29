@@ -166,7 +166,6 @@ int
 			   union sockaddr_union *us, socklen_t *uslen,
 			   bool *needbind, struct portrange **sourceport_range,
 			   int socktype) {
-   uint16_t port;
    char infobuff[256];
    int result;
    bool use_sourceport_range = false;

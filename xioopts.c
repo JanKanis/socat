@@ -3975,7 +3975,7 @@ int applyopts_offset(struct single *xfd, struct opt *opts) {
 int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourceport) {
    int sourceportopts_cnt = 0;
 
-   if (retropt_ushort(opts, OPT_SOURCEPORT, pr->low) >=0) {
+   if (retropt_ushort(opts, OPT_SOURCEPORT, &pr->low) >=0) {
       pr->high = pr->low;
       sourceportopts_cnt++;
    }
