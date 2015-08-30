@@ -391,6 +391,9 @@ typedef struct single {
 				       at [0], bits to be cleared are at [1] */
 	    bool   dosourceport_range;
 	    struct portrange sourceport_range;
+	    bool dosourceport;
+	    ushort sourceport;
+	    bool lowport;
 #if (WITH_TCP || WITH_UDP) && WITH_LIBWRAP
 	    bool   dolibwrap;
 	    char    *libwrapname;
