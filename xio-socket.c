@@ -773,90 +773,11 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
 
    applyopts(xfd->rfd, opts, PH_PREBIND);
    applyopts(xfd->rfd, opts, PH_BIND);
-#if WITH_TCP || WITH_UDP
-   if (sourceport_range) {
-      union sockaddr_union sin, *sinp;
-      unsigned short *port, i, N;
-      div_t dv;
-
-      /* prepare sockaddr for bind probing */
-      if (us) {
-	 sinp = (union sockaddr_union *)us;
-      } else {
-	 if (them->sa_family == AF_INET) {
-	    socket_in_init(&sin.ip4);
-#if WITH_IP6
-	 } else {
-	    socket_in6_init(&sin.ip6);
-#endif
-	 }
-	 sinp = &sin;
-      }
-      if (them->sa_family == AF_INET) {
-	 port = &sin.ip4.sin_port;
-#if WITH_IP6
-      } else if (them->sa_family == AF_INET6) {
-	 port = &sin.ip6.sin6_port;
-#endif
-      } else {
-	 port = 0;	/* just to make compiler happy */
-      }
-      /* combine random+step variant to quickly find a free port when only
-	 few are in use, and certainly find a free port in defined time even
-	 if there are almost all in use */
-      /* dirt 1: having tcp/udp code in socket function */
-      /* dirt 2: using a time related system call for init of random */
-      {
-	 /* generate a random port, with millisecond random init */
-#if 0
-	 struct timeb tb;
-	 ftime(&tb);
-	 srandom(tb.time*1000+tb.millitm);
-#else
-	 struct timeval tv;
-	 struct timezone tz;
-	 tz.tz_minuteswest = 0;
-	 tz.tz_dsttime = 0;
-	 if ((result = Gettimeofday(&tv, &tz)) < 0) {
-	    Warn2("gettimeofday(%p, {0,0}): %s", &tv, strerror(errno));
-	 }
-	 srandom(tv.tv_sec*1000000+tv.tv_usec);
-#endif
-      }
-      dv = div(random(), sourceport_range->high+1 - sourceport_range->low);
-      i = N = sourceport_range->low + dv.rem;
-      do {	/* loop over lowport bind() attempts */
-	 *port = htons(i);
-	 if (Bind(xfd->rfd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
-	    Msg4(errno==EADDRINUSE?E_INFO:level,
-		 "bind(%d, {%s}, "F_socklen"): %s", xfd->rfd,
-		 sockaddr_info(&sinp->soa, sizeof(*sinp), infobuff, sizeof(infobuff)),
-		 sizeof(*sinp), strerror(errno));
-	    if (errno != EADDRINUSE) {
-	       Close(xfd->rfd);
-	       return STAT_RETRYLATER;
-	    }
-	 } else {
-	    break;	/* could bind to port, good, continue past loop */
-	 }
-	 --i;  if (i < sourceport_range->low)  i = sourceport_range->high;
-	 if (i == N) {
-	    Msg2(level, "no port available in range %hu:%hu", sourceport_range->low, sourceport_range->high);
-	    /*errno = EADDRINUSE; still assigned */
-	    Close(xfd->rfd);
-	    return STAT_RETRYLATER;
-	 }
-      } while (i != N);
-   } else
-#endif /* WITH_TCP || WITH_UDP */
 
    if (us) {
-      if (Bind(xfd->rfd, us, uslen) < 0) {
-	 Msg4(level, "bind(%d, {%s}, "F_socklen"): %s",
-	      xfd->rfd, sockaddr_info(us, uslen, infobuff, sizeof(infobuff)),
-	      uslen, strerror(errno));
-	 Close(xfd->rfd);
-	 return STAT_RETRYLATER;
+      int result = xio_ipapp_bind(xfd, them, themlen, us, uslen, sourceport_range, level);
+      if (result < 0) {
+	 return result;
       }
    }
 
