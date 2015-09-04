@@ -775,7 +775,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
    applyopts(xfd->rfd, opts, PH_BIND);
 
    if (us) {
-      int result = xio_ipapp_bind(xfd, them, themlen, us, uslen, sourceport_range, level);
+      int result = xioopen_ipapp_bind(xfd, them, themlen, us, uslen, sourceport_range, level);
       if (result < 0) {
 	 return result;
       }

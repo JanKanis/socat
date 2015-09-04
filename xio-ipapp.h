@@ -28,9 +28,9 @@ extern int
 			   union sockaddr_union *us,  socklen_t *uslen,
 			   bool *needbind, struct portrange **sourceport_range,
 			   int socktype);
-int xioopen_ipapp_bind(struct single *xfd,
+extern int xioopen_ipapp_bind(struct single *xfd,
 		       struct sockaddr *them, size_t themlen,
-		       union sockaddr_union *us, socklen_t *uslen,
+		       struct sockaddr *us, socklen_t uslen,
 		       struct portrange *sourceport_range,
 		       int level);
 extern int _xioopen_ip4app_connect(const char *hostname, const char *portname,

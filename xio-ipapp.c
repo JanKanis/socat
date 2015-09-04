@@ -15,6 +15,8 @@
 #include "xio-ip6.h"
 #include "xio-ipapp.h"
 
+static ushort _xio_ipapp_randomport(ushort low, ushort high);
+
 const struct optdesc opt_sourceport = { "sourceport", "sp",       OPT_SOURCEPORT,  GROUP_IPAPP,     PH_LATE,TYPE_USHORT,	OFUNC_SPEC };
 const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT_RANGE, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
 /*const struct optdesc opt_port = { "port",  NULL,    OPT_PORT,        GROUP_IPAPP, PH_BIND,    TYPE_USHORT,	OFUNC_SPEC };*/
@@ -252,17 +254,21 @@ int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 
 int xioopen_ipapp_bind(struct single *xfd,
 		       struct sockaddr *them, size_t themlen,
-		       union sockaddr_union *us, socklen_t *uslen,
+		       struct sockaddr *us, socklen_t uslen,
 		       struct portrange *sourceport_range,
 		       int level) {
    char infobuff[256];
-   int result;
+   assert(us);
+   assert(them->sa_family == AF_INET
+#if WITH_IP6
+	 || them->sa_family == AF_INET6
+#endif
+   );
 
 #if WITH_TCP || WITH_UDP
    if (sourceport_range) {
-      union sockaddr_union sin, *sinp;
+      union sockaddr_union sin, *sinp = &sin;
       unsigned short *port, i, N;
-      div_t dv;
 
       /* prepare sockaddr for bind probing */
       if (us) {
@@ -275,41 +281,19 @@ int xioopen_ipapp_bind(struct single *xfd,
 	    socket_in6_init(&sin.ip6);
 #endif
 	 }
-	 sinp = &sin;
       }
       if (them->sa_family == AF_INET) {
 	 port = &sin.ip4.sin_port;
 #if WITH_IP6
-      } else if (them->sa_family == AF_INET6) {
+      } else {
 	 port = &sin.ip6.sin6_port;
 #endif
-      } else {
-	 port = 0;	/* just to make compiler happy */
       }
       /* combine random+step variant to quickly find a free port when only
 	 few are in use, and certainly find a free port in defined time even
 	 if there are almost all in use */
-      /* dirt 1: having tcp/udp code in socket function */
-      /* dirt 2: using a time related system call for init of random */
-      {
-	 /* generate a random port, with millisecond random init */
-#if 0
-	 struct timeb tb;
-	 ftime(&tb);
-	 srandom(tb.time*1000+tb.millitm);
-#else
-	 struct timeval tv;
-	 struct timezone tz;
-	 tz.tz_minuteswest = 0;
-	 tz.tz_dsttime = 0;
-	 if ((result = Gettimeofday(&tv, &tz)) < 0) {
-	    Warn2("gettimeofday(%p, {0,0}): %s", &tv, strerror(errno));
-	 }
-	 srandom(tv.tv_sec*1000000+tv.tv_usec);
-#endif
-      }
-      dv = div(random(), sourceport_range->high+1 - sourceport_range->low);
-      i = N = sourceport_range->low + dv.rem;
+      /* dirt: having tcp/udp code in socket function */
+      i = N = _xio_ipapp_randomport(sourceport_range->low, sourceport_range->high);
       do {	/* loop over lowport bind() attempts */
 	 *port = htons(i);
 	 if (Bind(xfd->rfd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
@@ -335,15 +319,14 @@ int xioopen_ipapp_bind(struct single *xfd,
    } else
 #endif /* WITH_TCP || WITH_UDP */
 
-   if (us) {
-      if (Bind(xfd->rfd, us, uslen) < 0) {
-	 Msg4(level, "bind(%d, {%s}, "F_socklen"): %s",
-	      xfd->rfd, sockaddr_info(us, uslen, infobuff, sizeof(infobuff)),
-	      uslen, strerror(errno));
-	 Close(xfd->rfd);
-	 return STAT_RETRYLATER;
-      }
+   if (Bind(xfd->rfd, us, uslen) < 0) {
+      Msg4(level, "bind(%d, {%s}, "F_socklen"): %s",
+	   xfd->rfd, sockaddr_info(us, uslen, infobuff, sizeof(infobuff)),
+	   uslen, strerror(errno));
+      Close(xfd->rfd);
+      return STAT_RETRYLATER;
    }
+   return STAT_OK;
 }
 
 /* we expect the form: port */
@@ -395,11 +378,30 @@ int xioopen_ipapp_listen(int argc, const char *argv[], struct opt *opts,
    return 0;
 }
 
-int _xio_ipapp_seedrand() {
-   static bool done;
-   if (done) return 0;
+/*
+ * Generate a random port number. Usually this will only be called once or
+ * twice per (parent/child) process. The C random() would need re-seeding
+ * after a fork(), so we don't bother using that. Basing this on nanosecond
+ * time is good enough.
+ * Return a random port number between high and low (inclusive).
+ */
+static ushort _xio_ipapp_randomport(ushort low, ushort high) {
+   int result;
+   ushort count = high - low + 1;
+   assert (high >= low);
+   if (count == 1) {return low;}
 
-
+#if 0
+   struct timeb tb;
+   ftime(&tb);
+   return ((ushort) tb.time ^ tb.millitm) % count + low;
+#else
+   struct timeval tv;
+   if ((result = Gettimeofday(&tv, NULL)) < 0) {
+      Warn2("gettimeofday(%p, {0,0}): %s", &tv, strerror(errno));
+   }
+   return ((ushort) tv.tv_sec ^ tv.tv_usec) % count + low;
+#endif
 }
 
 #endif /* _WITH_IP4 && _WITH_TCP && WITH_LISTEN */
