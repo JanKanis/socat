@@ -41,6 +41,7 @@ int Getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);
 int Chdir(const char *path);
 int Chroot(const char *path);
 int Gettimeofday(struct timeval *tv, struct timezone *tz);
+int Clock_gettime(clockid_t clk_id, struct timespec *ts);
 int Mknod(const char *pathname, mode_t mode, dev_t dev);
 int Mkfifo(const char *pathname, mode_t mode);
 int Stat(const char *file_name, struct stat *buf);

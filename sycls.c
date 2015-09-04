@@ -353,6 +353,19 @@ int Gettimeofday(struct timeval *tv, struct timezone *tz) {
    return result;
 }
 
+int Clock_gettime(clockid_t clk_id, struct timespec *ts) {
+   int result, _errno;
+   result = clock_gettime(clk_id, ts);
+   _errno = errno;
+#if WITH_MSGLEVEL <= E_DEBUG
+   Debug4("clock_gettime(%d, {%ld,%ld}) -> %d",
+	  clk_id, ts->tv_sec, ts->tv_nsec,
+	  result);
+#endif /* WITH_MSGLEVEL <= E_DEBUG */
+   errno = _errno;
+   return result;
+}
+
 int Mknod(const char *pathname, mode_t mode, dev_t dev) {
    int result, _errno;
    Debug3("mknod(\"%s\", 0%o, "F_dev")", pathname, mode, dev);

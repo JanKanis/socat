@@ -299,17 +299,17 @@ int xioopen_ipapp_bind(struct single *xfd,
       }
       if (count >= 4) {
 	 /* First try a few random ports, then exhaustively search all ports. */
-	 /* Seed PRNG with nanotime. That should be good enough for us. We will
-	  * usually only bind once or twice in a single process, and child
-	  * processes need to re-seed to not get the same random ports as other
-	  * children, so just re-seed unconditionally.
+	 /* Seed PRNG with microtime. That should be good enough for us.
+	  * We will usually only bind once or twice in a single process, and
+	  * child processes need to re-seed to not get the same random ports
+	  * as other children, so just re-seed unconditionally.
+	  * (Nanotime is not available on Mac)
 	  */
-	 struct timespec ts;
-	 if (clock_gettime(CLOCK_REALTIME, &ts) < 0) {
-	    // Should not be possible (at least on Linux)
-	    Warn2("clock_gettime(CLOCK_REALTIME, %p): %s", &ts, strerror(errno));
+	 struct timeval tv;
+	 if (Gettimeofday(&tv, NULL) < 0) {
+	    Warn2("gettimeofday(%p, NULL): %s", &tv, strerror(errno));
 	 }
-	 long seed = random() ^ ts.tv_sec ^ ts.tv_nsec;
+	 long seed = random() ^ tv.tv_sec ^ tv.tv_usec;
 	 Debug1("srandom(%ld)", seed);
 	 srandom(seed);
 
