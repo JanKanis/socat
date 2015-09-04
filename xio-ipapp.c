@@ -15,8 +15,6 @@
 #include "xio-ip6.h"
 #include "xio-ipapp.h"
 
-static ushort _xio_ipapp_randomport(ushort low, ushort high);
-
 const struct optdesc opt_sourceport = { "sourceport", "sp",       OPT_SOURCEPORT,  GROUP_IPAPP,     PH_LATE,TYPE_USHORT,	OFUNC_SPEC };
 const struct optdesc opt_sourceport_range = { "sourceport_range", NULL, OPT_SOURCEPORT_RANGE, GROUP_IPAPP, PH_LATE, TYPE_USHORT_USHORT, OFUNC_SPEC };
 /*const struct optdesc opt_port = { "port",  NULL,    OPT_PORT,        GROUP_IPAPP, PH_BIND,    TYPE_USHORT,	OFUNC_SPEC };*/
@@ -252,6 +250,11 @@ int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 }
 
 
+/*
+ * Bind a socket to a local address. If necessary find a free port in
+ * sourceport_range.
+ * Return 0 on success, STAT_RETRYLATER on error.
+ */
 int xioopen_ipapp_bind(struct single *xfd,
 		       struct sockaddr *them, size_t themlen,
 		       struct sockaddr *us, socklen_t uslen,
@@ -268,7 +271,12 @@ int xioopen_ipapp_bind(struct single *xfd,
 #if WITH_TCP || WITH_UDP
    if (sourceport_range) {
       union sockaddr_union sin, *sinp = &sin;
-      unsigned short *port, i, N;
+      ushort *pport, port, exhaustive_search_start;
+      int randomtries;
+      ushort low = sourceport_range->low;
+      ushort high = sourceport_range->high;
+      ushort count = high - low + 1;
+      assert (high >= low);
 
       /* prepare sockaddr for bind probing */
       if (us) {
@@ -283,19 +291,39 @@ int xioopen_ipapp_bind(struct single *xfd,
 	 }
       }
       if (them->sa_family == AF_INET) {
-	 port = &sin.ip4.sin_port;
+	 pport = &sinp->ip4.sin_port;
 #if WITH_IP6
       } else {
-	 port = &sin.ip6.sin6_port;
+	 pport = &sinp->ip6.sin6_port;
 #endif
       }
-      /* combine random+step variant to quickly find a free port when only
-	 few are in use, and certainly find a free port in defined time even
-	 if there are almost all in use */
-      /* dirt: having tcp/udp code in socket function */
-      i = N = _xio_ipapp_randomport(sourceport_range->low, sourceport_range->high);
-      do {	/* loop over lowport bind() attempts */
-	 *port = htons(i);
+      if (count >= 4) {
+	 /* First try a few random ports, then exhaustively search all ports. */
+	 /* Seed PRNG with nanotime. That should be good enough for us. We will
+	  * usually only bind once or twice in a single process, and child
+	  * processes need to re-seed to not get the same random ports as other
+	  * children, so just re-seed unconditionally.
+	  */
+	 struct timespec ts;
+	 if (clock_gettime(CLOCK_REALTIME, &ts) < 0) {
+	    // Should not be possible (at least on Linux)
+	    Warn2("clock_gettime(CLOCK_REALTIME, %p): %s", &ts, strerror(errno));
+	 }
+	 long seed = random() ^ ts.tv_sec ^ ts.tv_nsec;
+	 Debug1("srandom(%ld)", seed);
+	 srandom(seed);
+
+	 /* at most number of ports / 2 random tries, but 15 max. If less than
+	  * one in 15 ports is free, we will need to do an exhaustive search.*/
+	 randomtries = (count / 2 > 15) ? 15 : count / 2;
+	 port = (ushort)(random() % count) + low;
+      } else { // only a few ports to try, just probe linearly
+	 randomtries = 0;
+	 port = low;
+      }
+      exhaustive_search_start = port;
+      while(1) { /* loop over lowport bind() attempts */
+	 *pport = htons(port);
 	 if (Bind(xfd->rfd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
 	    Msg4(errno==EADDRINUSE?E_INFO:level,
 		 "bind(%d, {%s}, "F_socklen"): %s", xfd->rfd,
@@ -306,17 +334,27 @@ int xioopen_ipapp_bind(struct single *xfd,
 	       return STAT_RETRYLATER;
 	    }
 	 } else {
-	    break;	/* could bind to port, good, continue past loop */
+	    Info1("Bound to port %hu", port);
+	    return STAT_OK;
 	 }
-	 --i;  if (i < sourceport_range->low)  i = sourceport_range->high;
-	 if (i == N) {
-	    Msg2(level, "no port available in range %hu:%hu", sourceport_range->low, sourceport_range->high);
-	    /*errno = EADDRINUSE; still assigned */
-	    Close(xfd->rfd);
-	    return STAT_RETRYLATER;
+	 if (randomtries > 0) {
+	    // Try another random port
+	    randomtries--;
+	    port = (ushort)(random() % count) + low;
+	    exhaustive_search_start = port;
+	 } else {
+	    // exhaustive search
+	    port--;
+	    if (port < low) port = high;
+	    if (port == exhaustive_search_start) {
+	       Msg2(level, "no ports available in range %hu:%hu", low, high);
+	       /*errno = EADDRINUSE; still assigned */
+	       Close(xfd->rfd);
+	       return STAT_RETRYLATER;
+	    }
 	 }
-      } while (i != N);
-   } else
+      }
+   }
 #endif /* WITH_TCP || WITH_UDP */
 
    if (Bind(xfd->rfd, us, uslen) < 0) {
@@ -376,32 +414,6 @@ int xioopen_ipapp_listen(int argc, const char *argv[], struct opt *opts,
        != 0)
       return result;
    return 0;
-}
-
-/*
- * Generate a random port number. Usually this will only be called once or
- * twice per (parent/child) process. The C random() would need re-seeding
- * after a fork(), so we don't bother using that. Basing this on nanosecond
- * time is good enough.
- * Return a random port number between high and low (inclusive).
- */
-static ushort _xio_ipapp_randomport(ushort low, ushort high) {
-   int result;
-   ushort count = high - low + 1;
-   assert (high >= low);
-   if (count == 1) {return low;}
-
-#if 0
-   struct timeb tb;
-   ftime(&tb);
-   return ((ushort) tb.time ^ tb.millitm) % count + low;
-#else
-   struct timeval tv;
-   if ((result = Gettimeofday(&tv, NULL)) < 0) {
-      Warn2("gettimeofday(%p, {0,0}): %s", &tv, strerror(errno));
-   }
-   return ((ushort) tv.tv_sec ^ tv.tv_usec) % count + low;
-#endif
 }
 
 #endif /* _WITH_IP4 && _WITH_TCP && WITH_LISTEN */
