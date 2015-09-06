@@ -376,39 +376,9 @@ int _xioopen_udp_sendto(const char *hostname, const char *servname,
       needbind = true;
    }
 
-   if (retropt_ushort(opts, OPT_SOURCEPORT,
-		      &xfd->para.socket.ip.sourceport) >= 0) {
-      switch (pf) {
-#if WITH_IP4
-      case PF_INET:
-	 us.ip4.sin_port = htons(xfd->para.socket.ip.sourceport);
-	 break;
-#endif
-#if WITH_IP6
-      case PF_INET6:
-	 us.ip6.sin6_port = htons(xfd->para.socket.ip.sourceport);
-	 break;
-#endif
-      }
-      needbind = true;
-   }
-
-   retropt_bool(opts, OPT_LOWPORT, &xfd->para.socket.ip.lowport);
-   if (xfd->para.socket.ip.lowport) {
-      switch (pf) {
-#if WITH_IP4
-      case PF_INET:
-	 /*!!! this is buggy */
-	 us.ip4.sin_port = htons(xfd->para.socket.ip.lowport); break;
-#endif
-#if WITH_IP6
-      case PF_INET6: 
-	 /*!!! this is buggy */
-	 us.ip6.sin6_port = htons(xfd->para.socket.ip.lowport); break;
-#endif
-      }
-      needbind = true;
-   }
+   applyopts_sourceport(opts, &xfd->para.socket.ip.sourceport_range,
+	 &xfd->para.socket.ip.dosourceport_range);
+   needbind |= xfd->para.socket.ip.dosourceport_range;
 
    xfd->dtype = XIODATA_RECVFROM;
    if ((result =
@@ -457,8 +427,9 @@ int xioopen_udp_datagram(int argc, const char *argv[], struct opt *opts,
    xfd->para.socket.la.soa.sa_family = xfd->peersa.soa.sa_family;
 
    /* only accept packets with correct remote ports */
-   xfd->para.socket.ip.sourceport = ntohs(xfd->peersa.ip4.sin_port);
-   xfd->para.socket.ip.dosourceport = true;
+   result = ntohs(xfd->peersa.ip4.sin_port);
+   xfd->para.socket.ip.sourceport_range = (struct portrange) {result, result};
+   xfd->para.socket.ip.dosourceport_range = true;
 
    /* which reply packets will be accepted - determine by range option */
    if (retropt_string(opts, OPT_RANGE, &rangename)
@@ -536,10 +507,8 @@ int xioopen_udp_recvfrom(int argc, const char *argv[], struct opt *opts,
       }
    }
 
-   if (retropt_ushort(opts, OPT_SOURCEPORT, &xfd->stream.para.socket.ip.sourceport) >= 0) {
-      xfd->stream.para.socket.ip.dosourceport = true;
-   }
-   retropt_bool(opts, OPT_LOWPORT, &xfd->stream.para.socket.ip.lowport);
+   applyopts_sourceport(opts, &xfd->stream.para.socket.ip.sourceport_range,
+	 	&xfd->stream.para.socket.ip.dosourceport_range);
 
    xfd->stream.dtype = XIODATA_RECVFROM_ONE;
    if ((result =
@@ -629,12 +598,8 @@ int xioopen_udp_recv(int argc, const char *argv[], struct opt *opts,
    xio_retropt_tcpwrap(&xfd->stream, opts);
 #endif /* WITH_LIBWRAP */
 
-   if (retropt_ushort(opts, OPT_SOURCEPORT,
-		      &xfd->stream.para.socket.ip.sourceport)
-       >= 0) {
-      xfd->stream.para.socket.ip.dosourceport = true;
-   }
-   retropt_bool(opts, OPT_LOWPORT, &xfd->stream.para.socket.ip.lowport);
+   applyopts_sourceport(opts, &xfd->stream.para.socket.ip.sourceport_range,
+	 	&xfd->stream.para.socket.ip.dosourceport_range);
 
    xfd->stream.dtype = XIODATA_RECV;
    if ((result = _xioopen_dgram_recv(&xfd->stream, xioflags, &us.soa, uslen,

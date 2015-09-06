@@ -29,10 +29,10 @@ extern int
 			   bool *needbind, struct portrange **sourceport_range,
 			   int socktype);
 extern int xioopen_ipapp_bind(struct single *xfd,
-		       struct sockaddr *them, size_t themlen,
-		       struct sockaddr *us, socklen_t uslen,
-		       struct portrange *sourceport_range,
-		       int level);
+			ushort sa_family,
+			struct sockaddr *us, socklen_t uslen,
+			struct portrange *sourceport_range,
+			int level);
 extern int _xioopen_ip4app_connect(const char *hostname, const char *portname,
 				   struct single *xfd,
 				   int socktype, int ipproto, void *protname,

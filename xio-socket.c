@@ -775,7 +775,7 @@ int _xioopen_connect(struct single *xfd, struct sockaddr *us, size_t uslen,
    applyopts(xfd->rfd, opts, PH_BIND);
 
    if (us) {
-      int result = xioopen_ipapp_bind(xfd, them, themlen, us, uslen, sourceport_range, level);
+      result = xioopen_ipapp_bind(xfd, them->sa_family, us, uslen, sourceport_range, level);
       if (result < 0) {
 	 return result;
       }
@@ -1001,6 +1001,8 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
 			struct opt *opts,
 			int xioflags, xiosingle_t *xfd, unsigned groups,
 			int pf, int socktype, int ipproto) {
+   struct portrange *sprange = xfd->para.socket.ip.dosourceport_range ?
+	 &xfd->para.socket.ip.sourceport_range : NULL;
    int level = E_ERROR;
    union sockaddr_union la; socklen_t lalen = sizeof(la);
    char infobuff[256];
@@ -1019,13 +1021,10 @@ int _xioopen_dgram_sendto(/* them is already in xfd->peersa */
    applyopts(xfd->rfd, opts, PH_PREBIND);
    applyopts(xfd->rfd, opts, PH_BIND);
 
-   if (us) {
-      if (Bind(xfd->rfd, (struct sockaddr *)us, uslen) < 0) {
-	 Msg4(level, "bind(%d, {%s}, "F_socklen"): %s",
-	      xfd->rfd, sockaddr_info((struct sockaddr *)us, uslen, infobuff, sizeof(infobuff)),
-	      uslen, strerror(errno));
-	 Close(xfd->rfd);
-	 return STAT_RETRYLATER;
+   if (us || sprange) {
+      int result = xioopen_ipapp_bind(xfd, pf, &us->soa, uslen, sprange, level);
+      if (result < 0) {
+	 return result;
       }
    }
 
@@ -1749,9 +1748,10 @@ int xiocheckpeer(xiosingle_t *xfd,
       if (port != -1) {
 	 if (port < xfd->para.socket.ip.sourceport_range.low ||
 	     port > xfd->para.socket.ip.sourceport_range.high) {
-	    Warn1("refusing connection from %s due to lowport/sourceport/sourceport_range option",
+	    Warn3("refusing connection from %s due to lowport/sourceport/sourceport_range option, accept %hu:%hu",
 		  sockaddr_info((struct sockaddr *)pa, 0,
-				infobuff, sizeof(infobuff)));
+				infobuff, sizeof(infobuff)),
+		  xfd->para.socket.ip.sourceport_range.low, xfd->para.socket.ip.sourceport_range.high);
 	    return -1;
 	 }
       } else {

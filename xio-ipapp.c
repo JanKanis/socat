@@ -253,18 +253,21 @@ int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 /*
  * Bind a socket to a local address. If necessary find a free port in
  * sourceport_range.
+ * Either 'us' or 'sa_family' must be specified. If 'us' is NULL, it will be
+ * created based on sa_family. If sourceport_range is provided, the address family of the
+ * sockets must be AF_INET or AF_INET6.
  * Return 0 on success, STAT_RETRYLATER on error.
  */
 int xioopen_ipapp_bind(struct single *xfd,
-		       struct sockaddr *them, size_t themlen,
+		       ushort sa_family,
 		       struct sockaddr *us, socklen_t uslen,
 		       struct portrange *sourceport_range,
 		       int level) {
    char infobuff[256];
-   assert(us);
-   assert(them->sa_family == AF_INET
+   if (us) sa_family = us->sa_family;
+   if (sourceport_range) assert(sa_family == AF_INET
 #if WITH_IP6
-	 || them->sa_family == AF_INET6
+	 || us->sa_family == AF_INET6
 #endif
    );
 
@@ -282,7 +285,7 @@ int xioopen_ipapp_bind(struct single *xfd,
       if (us) {
 	 sinp = (union sockaddr_union *)us;
       } else {
-	 if (them->sa_family == AF_INET) {
+	 if (sa_family == AF_INET) {
 	    socket_in_init(&sin.ip4);
 #if WITH_IP6
 	 } else {
@@ -290,7 +293,7 @@ int xioopen_ipapp_bind(struct single *xfd,
 #endif
 	 }
       }
-      if (them->sa_family == AF_INET) {
+      if (sa_family == AF_INET) {
 	 pport = &sinp->ip4.sin_port;
 #if WITH_IP6
       } else {
