@@ -1919,6 +1919,11 @@ label(OPTION_RCVTIMEO)dit(bf(tt(rcvtimeo=<seconds>)))
 label(OPTION_REUSEADDR)dit(bf(tt(reuseaddr)))
    Allows other sockets to bind to an address even if parts of it (e.g. the
    local port) are already in use by socat() (link(example)(EXAMPLE_OPTION_REUSEADDR)). 
+label(OPTION_REUSEPORT)dit(bf(tt(reuseport)))
+   Allows other sockets to bind to an address and port that is already bound
+   by a different socket, as long as the outgoing connection is not to the same remote address:port combination as an existing connection. On listening sockets, this allows multiple sockets to listen to the same port. Incoming connections will be evenly divided between the listening sockets.
+   Allows other sockets to bind to an address even if parts of it (e.g. the
+    (link(example)(EXAMPLE_OPTION_REUSEADDR)). 
 label(OPTION_SNDBUF)dit(bf(tt(sndbuf=<bytes>)))
    Sets the size of the send buffer after the code(socket()) call to
    <bytes> [link(int)(TYPE_INT)].
