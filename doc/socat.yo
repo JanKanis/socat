@@ -597,6 +597,7 @@ label(ADDRESS_OPENSSL_LISTEN)dit(bf(tt(OPENSSL-LISTEN:<port>)))
    link(tcpwrap)(OPTION_TCPWRAPPERS),
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
+   link(reuseport)(OPTION_REUSEPORT),
    link(retry)(OPTION_RETRY)nl()
    See also:
    link(OPENSSL)(ADDRESS_OPENSSL_CONNECT),
@@ -730,6 +731,7 @@ label(ADDRESS_SCTP_LISTEN)dit(bf(tt(SCTP-LISTEN:<port>)))
    link(sctp-nodelay)(OPTION_SCTP_NODELAY),
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
+   link(reuseport)(OPTION_REUSEPORT),
    link(retry)(OPTION_RETRY),
    link(cool-write)(OPTION_COOL_WRITE)nl()
    See also:
@@ -1015,6 +1017,7 @@ label(ADDRESS_TCP_LISTEN)dit(bf(tt(TCP-LISTEN:<port>)))
    link(mss)(OPTION_MSS),
    link(su)(OPTION_SUBSTUSER),
    link(reuseaddr)(OPTION_REUSEADDR),
+   link(reuseport)(OPTION_REUSEPORT),
    link(retry)(OPTION_RETRY),
    link(cool-write)(OPTION_COOL_WRITE)nl()
    See also:
@@ -1920,10 +1923,12 @@ label(OPTION_REUSEADDR)dit(bf(tt(reuseaddr)))
    Allows other sockets to bind to an address even if parts of it (e.g. the
    local port) are already in use by socat() (link(example)(EXAMPLE_OPTION_REUSEADDR)). 
 label(OPTION_REUSEPORT)dit(bf(tt(reuseport)))
-   Allows other sockets to bind to an address and port that is already bound
-   by a different socket, as long as the outgoing connection is not to the same remote address:port combination as an existing connection. On listening sockets, this allows multiple sockets to listen to the same port. Incoming connections will be evenly divided between the listening sockets.
-   Allows other sockets to bind to an address even if parts of it (e.g. the
-    (link(example)(EXAMPLE_OPTION_REUSEADDR)). 
+   Allows sockets to bind to an address and port that is already in use by a
+   different socket. For outgoing connections this requires that the remote
+   address:port is different from any existing connections on the local port.
+   For listening sockets, incoming connections will be evenly spread between
+   the sockets. On some systems this option must also be set on the very first
+   socket that binds to an address and port to work.
 label(OPTION_SNDBUF)dit(bf(tt(sndbuf=<bytes>)))
    Sets the size of the send buffer after the code(socket()) call to
    <bytes> [link(int)(TYPE_INT)].
