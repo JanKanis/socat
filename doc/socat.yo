@@ -567,6 +567,7 @@ label(ADDRESS_OPENSSL_CONNECT)dit(bf(tt(OPENSSL:<host>:<port>)))
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(retry)(OPTION_RETRY)nl()
    See also:
    link(OPENSSL-LISTEN)(ADDRESS_OPENSSL_LISTEN),
@@ -650,6 +651,7 @@ label(ADDRESS_PROXY_CONNECT)dit(bf(tt(PROXY:<proxy>:<hostname>:<port>)))
    link(connect-timeout)(OPTION_CONNECT_TIMEOUT),
    link(mss)(OPTION_MSS),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(retry)(OPTION_RETRY) nl()
    See also: link(SOCKS)(ADDRESS_SOCKS4), link(TCP)(ADDRESS_TCP_CONNECT)
 label(ADDRESS_PTY)dit(bf(tt(PTY)))
@@ -697,6 +699,7 @@ label(ADDRESS_SCTP_CONNECT)dit(bf(tt(SCTP-CONNECT:<host>:<port>)))
    link(sctp-nodelay)(OPTION_SCTP_NODELAY),
    link(nonblock)(OPTION_NONBLOCK),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(retry)(OPTION_RETRY),
    link(readbytes)(OPTION_READBYTES)nl()
    See also:
@@ -897,6 +900,7 @@ label(ADDRESS_SOCKS4)dit(bf(tt(SOCKS4:<socks-server>:<host>:<port>)))
    link(socksuser)(OPTION_SOCKSUSER),
    link(socksport)(OPTION_SOCKSPORT),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(pf)(OPTION_PROTOCOL_FAMILY),
    link(retry)(OPTION_RETRY)nl()
    See also:
@@ -982,6 +986,7 @@ label(ADDRESS_TCP_CONNECT)dit(bf(tt(TCP:<host>:<port>)))
    link(nodelay)(OPTION_NODELAY),
    link(nonblock)(OPTION_NONBLOCK),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(retry)(OPTION_RETRY),
    link(readbytes)(OPTION_READBYTES)nl()
    See also:
@@ -1069,6 +1074,7 @@ label(ADDRESS_UDP_CONNECT)dit(bf(tt(UDP:<host>:<port>)))
    link(tos)(OPTION_TOS),
    link(bind)(OPTION_BIND),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
    See also:
    link(UDP4)(ADDRESS_UDP4_CONNECT),
@@ -1102,6 +1108,7 @@ label(ADDRESS_UDP_DATAGRAM)dit(bf(tt(UDP-DATAGRAM:<address>:<port>)))
    link(ttl)(OPTION_TTL),
    link(tos)(OPTION_TOS),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
    See also:
    link(UDP4-DATAGRAM)(ADDRESS_UDP4_DATAGRAM),
@@ -1165,6 +1172,7 @@ label(ADDRESS_UDP_SENDTO)dit(bf(tt(UDP-SENDTO:<host>:<port>)))
    link(tos)(OPTION_TOS),
    link(bind)(OPTION_BIND),
    link(sourceport)(OPTION_SOURCEPORT),
+   link(sourceport_range)(OPTION_SOURCEPORT_RANGE),
    link(pf)(OPTION_PROTOCOL_FAMILY)nl()
    See also:
    link(UDP4-SENDTO)(ADDRESS_UDP4_SENDTO),
@@ -2276,6 +2284,12 @@ label(OPTION_SOURCEPORT)dit(bf(tt(sourceport=<port>)))
    link(<port>)(TYPE_PORT) using an extra code(bind()) call.
    With TCP or UDP listen addresses, socat() immediately shuts down the
    connection if the client does not use this sourceport (link(example)(EXAMPLE_OPTION_SOURCEPORT)).
+label(OPTION_SOURCEPORT_RANGE)dit(bf(tt(sourceport_range=<firstport>:<lastport>)))
+   This is the same as link(sourceport)(OPTION_SOURCEPORT), but allows specifying a range. If
+   applied to an outgoing connection socat will bind to an available port in
+   the range <fistport>-<lastport> (inclusive). The port is chosen randomly.
+   If applied to a listening address the connecting client must use a source port in
+   this range or socat will shut the connection down.
 label(OPTION_LOWPORT)dit(bf(tt(lowport)))
    Outgoing (client) TCP and UDP connections with this option use
    an unused random source port between 640 and 1023 incl. On UNIX class operating
