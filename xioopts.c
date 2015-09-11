@@ -1451,6 +1451,7 @@ const struct optname optionnames[] = {
 	IF_IPAPP  ("sourceport",	&opt_sourceport)
 	IF_IPAPP  ("sourceport_range",	&opt_sourceport_range)
 	IF_IPAPP  ("sp",	&opt_sourceport)
+	IF_IPAPP  ("spr",	&opt_sourceport_range)
 	IF_TERMIOS("start",	&opt_vstart)
 #if HAVE_RESOLV_H
 	IF_IP     ("stayopen",	&opt_res_stayopen)
