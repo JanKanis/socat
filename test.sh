@@ -5632,6 +5632,17 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+NAME=TCP4SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of TCP4-L with SOURCEPORT option"
+if ! eval $NUMCOND; then :; else
+testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "spr=$PORT:$PORT" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
+fi ;; # NUMCOND
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 NAME=TCP4LOWPORT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
