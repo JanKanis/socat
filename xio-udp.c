@@ -175,8 +175,7 @@ int xioopen_ipdgram_listen(int argc, const char *argv[], struct opt *opts,
    xio_retropt_tcpwrap(&fd->stream, opts);
 #endif /* WITH_LIBWRAP */
 
-   applyopts_sourceport(opts,
-			&fd->stream.para.socket.ip.sourceport_range,
+   applyopts_sourceport_listen(opts, &fd->stream.para.socket.ip.sourceport_range,
 			&fd->stream.para.socket.ip.dosourceport_range);
 
    if (dofork) {
@@ -507,7 +506,7 @@ int xioopen_udp_recvfrom(int argc, const char *argv[], struct opt *opts,
       }
    }
 
-   applyopts_sourceport(opts, &xfd->stream.para.socket.ip.sourceport_range,
+   applyopts_sourceport_listen(opts, &xfd->stream.para.socket.ip.sourceport_range,
 	 	&xfd->stream.para.socket.ip.dosourceport_range);
 
    xfd->stream.dtype = XIODATA_RECVFROM_ONE;
@@ -598,7 +597,7 @@ int xioopen_udp_recv(int argc, const char *argv[], struct opt *opts,
    xio_retropt_tcpwrap(&xfd->stream, opts);
 #endif /* WITH_LIBWRAP */
 
-   applyopts_sourceport(opts, &xfd->stream.para.socket.ip.sourceport_range,
+   applyopts_sourceport_listen(opts, &xfd->stream.para.socket.ip.sourceport_range,
 	 	&xfd->stream.para.socket.ip.dosourceport_range);
 
    xfd->stream.dtype = XIODATA_RECV;

@@ -3969,10 +3969,7 @@ int applyopts_offset(struct single *xfd, struct opt *opts) {
    return 0;
 }
 
-/* Applies and consumes options OPT_LOWPORT, OPT_SOURCEPORT and OPT_SOURCEPORT_RANGE
- * into a struct portrange * and a bool.
- */
-int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourceport) {
+static int _applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourceport, bool listen) {
    int sourceportopts_cnt = 0;
 
    if (retropt_ushort(opts, OPT_SOURCEPORT, &pr->low) >=0) {
@@ -3981,9 +3978,10 @@ int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourcep
    }
 
    bool lowport = false;
+   ushort lowestport = listen ? 0 : XIO_IPPORT_LOWER;
    retropt_bool(opts, OPT_LOWPORT, &lowport);
    if (lowport) {
-      *pr = (struct portrange) {XIO_IPPORT_LOWER, IPPORT_RESERVED-1};
+      *pr = (struct portrange) {lowestport, IPPORT_RESERVED-1};
       sourceportopts_cnt++;
    }
 
@@ -3998,14 +3996,35 @@ int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourcep
 
    if (sourceportopts_cnt == 0) {
       *dosourceport = false;
-   } else if (sourceportopts_cnt == 1) {
+   } else {
       *dosourceport = true;
-   } else if (sourceportopts_cnt > 1) {
+   }
+   if (sourceportopts_cnt > 1) {
       Error("Conflicting options: can not use options 'lowport', 'sourceport' and 'sourceport_range' on the same address");
       return -1;
    }
    return 0;
 }
+
+/* Applies and consumes options OPT_LOWPORT, OPT_SOURCEPORT and OPT_SOURCEPORT_RANGE
+ * into a struct portrange * and a bool. OPT_LOWPORT is interpreted as a
+ * range 640...1023
+ */
+int applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *dosourceport) {
+   return _applyopts_sourceport(opts, pr, dosourceport, false);
+}
+
+
+/* Applies and consumes options OPT_LOWPORT, OPT_SOURCEPORT and OPT_SOURCEPORT_RANGE
+ * into a struct portrange * and a bool.
+ * This function uses a range of 0...1023 for lowport, for when the
+ * lowport option is used on listening sockets. This is for backward
+ * compatibility.
+ */
+int applyopts_sourceport_listen(struct opt *opts, struct portrange *pr, bool *dosourceport) {
+   return _applyopts_sourceport(opts, pr, dosourceport, true);
+}
+
 
 /* applies to xfd all OFUNC_EXT options belonging to phase
    returns -1 if an error occurred */

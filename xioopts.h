@@ -941,6 +941,7 @@ extern int applyopts_cloexec(int fd, struct opt *opts);
 extern int applyopts_early(const char *path, struct opt *opts);
 extern int applyopts_fchown(int fd, struct opt *opts);
 extern int applyopts_sourceport(struct opt *opts, struct portrange *sourceport_range, bool *dosourceport);
+extern int applyopts_sourceport_listen(struct opt *opts, struct portrange *sourceport_range, bool *dosourceport);
 extern int applyopts_single(struct single *fd, struct opt *opts, enum e_phase phase);
 extern int applyopts_offset(struct single *xfd, struct opt *opts);
 extern int applyopts_signal(struct single *xfd, struct opt *opts);
