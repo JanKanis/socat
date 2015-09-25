@@ -3988,7 +3988,7 @@ static int _applyopts_sourceport(struct opt *opts, struct portrange *pr, bool *d
 
    if (retropt_ushort_ushort(opts, OPT_SOURCEPORT_RANGE,
 			     &pr->low, &pr->high) >= 0) {
-      if(&pr->high < &pr->low) {
+      if(pr->high < pr->low) {
 	 Error2("sourceport_range: second argument should be equal or larger than first argument: %hu:%hu", pr->low, pr->high);
 	 pr->high = pr->low;
       }
