@@ -250,6 +250,23 @@ int _xioopen_ipapp_listen_prepare(struct opt *opts, struct opt **opts0,
 }
 
 
+/* Return a random number 0 < ... < arg that is coprime with arg. */
+static ushort random_coprime(ushort arg) {
+   /* Euclid's algorithm to test coprimality. A large fraction of numbers is
+    * coprime with any arg so the outer loop doesn't need to iterate many times. */
+   assert(arg > 1);
+   while (1) {
+      ushort candidate = random() % (arg-1) + 1;
+      ushort a = candidate, b = arg;
+      while (b != 0) {
+	 ushort tmp = b;
+	 b = a % b;
+	 a = tmp;
+      }
+      if (a == 1) return candidate;
+   }
+}
+
 /*
  * Bind a socket to a local address. If necessary find a free port in
  * sourceport_range.
@@ -274,8 +291,8 @@ int xioopen_ipapp_bind(struct single *xfd,
 #if WITH_TCP || WITH_UDP
    if (sourceport_range) {
       union sockaddr_union sin, *sinp = &sin;
-      ushort *pport, port, exhaustive_search_start;
-      int randomtries;
+      ushort *pport, start, stride;
+      int port;
       ushort low = sourceport_range->low;
       ushort high = sourceport_range->high;
       ushort count = high - low + 1;
@@ -300,33 +317,28 @@ int xioopen_ipapp_bind(struct single *xfd,
 	 pport = &sinp->ip6.sin6_port;
 #endif
       }
-      if (count >= 4) {
-	 /* First try a few random ports, then exhaustively search all ports. */
-	 /* Seed PRNG with microtime. That should be good enough for us.
-	  * We will usually only bind once or twice in a single process, and
-	  * child processes need to re-seed to not get the same random ports
-	  * as other children, so just re-seed unconditionally.
-	  * (Nanotime is not available on Mac)
-	  */
-	 struct timeval tv;
-	 if (Gettimeofday(&tv, NULL) < 0) {
-	    Warn2("gettimeofday(%p, NULL): %s", &tv, strerror(errno));
-	 }
-	 long seed = random() ^ tv.tv_sec ^ tv.tv_usec;
-	 Debug1("srandom(%ld)", seed);
-	 srandom(seed);
-
-	 /* at most number of ports / 2 random tries, but 15 max. If less than
-	  * one in 15 ports is free, we will need to do an exhaustive search.*/
-	 randomtries = (count / 2 > 15) ? 15 : count / 2;
-	 port = (ushort)(random() % count) + low;
-      } else { // only a few ports to try, just probe linearly
-	 randomtries = 0;
-	 port = low;
+      /* Seed PRNG with microtime. That should be good enough for us.
+       * We will usually only bind once or twice in a single process, and
+       * child processes need to re-seed to not get the same ports as other
+       * children, so just re-seed unconditionally.
+       * (Nanotime is not available on Mac)
+       */
+      struct timeval tv;
+      if (Gettimeofday(&tv, NULL) < 0) {
+	 Warn2("gettimeofday(%p, NULL): %s", &tv, strerror(errno));
       }
-      exhaustive_search_start = port;
-      while(1) { /* loop over lowport bind() attempts */
-	 *pport = htons(port);
+      long seed = random() ^ tv.tv_usec;
+      Debug1("srandom(%ld)", seed);
+      srandom(seed);
+
+      /* Search through the port range using a stride that is coprime with the
+       * number of ports, with wraparound. This ensures every port is tried once. */
+      stride = (count == 1) ? 0 : random_coprime(count);
+      port = start = (ushort)(random() % count) + low;
+      Debug4("Attempting to bind to port in range %hu:%hu, starting at %hu with steps of %hu",
+	    low, high, start, stride);
+      while(1) { /* loop over lowport/portrange bind() attempts */
+	 *pport = htons((ushort)port);
 	 if (Bind(xfd->rfd, (struct sockaddr *)sinp, sizeof(*sinp)) < 0) {
 	    Msg4(errno==EADDRINUSE?E_INFO:level,
 		 "bind(%d, {%s}, "F_socklen"): %s", xfd->rfd,
@@ -337,24 +349,16 @@ int xioopen_ipapp_bind(struct single *xfd,
 	       return STAT_RETRYLATER;
 	    }
 	 } else {
-	    Info1("Bound to port %hu", port);
+	    Info1("Bound to port %d", port);
 	    return STAT_OK;
 	 }
-	 if (randomtries > 0) {
-	    // Try another random port
-	    randomtries--;
-	    port = (ushort)(random() % count) + low;
-	    exhaustive_search_start = port;
-	 } else {
-	    // exhaustive search
-	    port--;
-	    if (port < low) port = high;
-	    if (port == exhaustive_search_start) {
-	       Msg2(level, "no ports available in range %hu:%hu", low, high);
-	       /*errno = EADDRINUSE; still assigned */
-	       Close(xfd->rfd);
-	       return STAT_RETRYLATER;
-	    }
+	 port += stride;
+	 if (port > high) port -= count;
+	 if (port == start) {
+	    Msg2(level, "no ports available in range %hu:%hu", low, high);
+	    /*errno = EADDRINUSE; still assigned */
+	    Close(xfd->rfd);
+	    return STAT_RETRYLATER;
 	 }
       }
    }
