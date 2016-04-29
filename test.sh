@@ -78,6 +78,8 @@ LOCALHOST6=[::1]
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
+SOURCEPORT_RANGE_GOOD=10000:19999
+SOURCEPORT_RANGE_BAD=20000:29999
 
 # SSL certificate contents
 TESTCERT_CONF=testcert.conf
@@ -5635,9 +5637,9 @@ N=$((N+1))
 NAME=TCP4SOURCEPORTRANGE
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
-TEST="$NAME: security of TCP4-L with SOURCEPORT option"
+TEST="$NAME: security of TCP4-L with SOURCEPORT_RANGE option"
 if ! eval $NUMCOND; then :; else
-testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "" "spr=$PORT:$PORT" "tcp4:127.0.0.1:$PORT" 4 tcp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "tcp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 tcp $PORT 0
 fi ;; # NUMCOND
 esac
 PORT=$((PORT+1))
@@ -5718,6 +5720,21 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     numCANT=$((numCANT+1))
 else
 testserversec "$N" "$TEST" "$opts -s" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "" "sp=$PORT" "tcp6:[::1]:$PORT" 6 tcp $PORT 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=TCP6SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of TCP6-L with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+testserversec "$N" "$TEST" "$opts -s" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "tcp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
