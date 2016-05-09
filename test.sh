@@ -78,8 +78,8 @@ LOCALHOST6=[::1]
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
-SOURCEPORT_RANGE_GOOD=40000:49999
-SOURCEPORT_RANGE_BAD=50000:59999
+SOURCEPORT_RANGE_PRI=40000:49999
+SOURCEPORT_RANGE_ALT=50000:59999
 
 # SSL certificate contents
 TESTCERT_CONF=testcert.conf
@@ -5639,7 +5639,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
 TEST="$NAME: security of TCP4-L with SOURCEPORT_RANGE option"
 if ! eval $NUMCOND; then :; else
-testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "tcp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 tcp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "tcp4-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "tcp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_PRI" 4 tcp $PORT 0
 fi ;; # NUMCOND
 esac
 PORT=$((PORT+1))
@@ -5734,7 +5734,7 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-testserversec "$N" "$TEST" "$opts -s" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "tcp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 tcp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "tcp6-l:$PORT,reuseaddr,fork,retry=1" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "tcp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_PRI" 6 tcp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -5803,7 +5803,7 @@ case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
 TEST="$NAME: security of UDP4-L with SOURCEPORT option"
 if ! eval $NUMCOND; then :; else
-testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 udp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_PRI" 4 udp $PORT 0
 fi ;; # NUMCOND
 esac
 PORT=$((PORT+1))
@@ -5880,7 +5880,7 @@ elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-testserversec "$N" "$TEST" "$opts -s" "udp6-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 udp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "udp6-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_PRI" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7490,7 +7490,7 @@ elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-testserversec "$N" "$TEST" "$opts -s" "udp4-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4-sendto:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 udp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "udp4-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp4-sendto:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_PRI" 4 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7577,7 +7577,7 @@ PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
 # we use the forward channel (PORT1) for testing, and have a backward channel
 # (PORT2) to get the data back, so we get the classical echo behaviour
-testserversec "$N" "$TEST" "$opts -s" "udp4-sendto:127.0.0.1:$PORT2%udp4-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4-sendto:127.0.0.1:$PORT1,spr=$SOURCEPORT_RANGE_GOOD%udp4-recv:$PORT2" 4 udp $PORT1 0
+testserversec "$N" "$TEST" "$opts -s" "udp4-sendto:127.0.0.1:$PORT2%udp4-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp4-sendto:127.0.0.1:$PORT1,spr=$SOURCEPORT_RANGE_PRI%udp4-recv:$PORT2" 4 udp $PORT1 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7669,7 +7669,7 @@ elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
     numCANT=$((numCANT+1))
 else
-testserversec "$N" "$TEST" "$opts -s" "udp6-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6-sendto:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 udp $PORT 0
+testserversec "$N" "$TEST" "$opts -s" "udp6-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp6-sendto:[::1]:$PORT,spr=$SOURCEPORT_RANGE_PRI" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7759,7 +7759,7 @@ PORT1=$PORT; PORT=$((PORT+1))
 PORT2=$PORT
 # we use the forward channel (PORT1) for testing, and have a backward channel
 # (PORT2) to get the data back, so we get the classical echo behaviour
-testserversec "$N" "$TEST" "$opts -s" "udp6-sendto:[::1]:$PORT2%udp6-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6-sendto:[::1]:$PORT1,spr=$SOURCEPORT_RANGE_GOOD%udp6-recv:$PORT2" 6 udp $PORT1 0
+testserversec "$N" "$TEST" "$opts -s" "udp6-sendto:[::1]:$PORT2%udp6-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "udp6-sendto:[::1]:$PORT1,spr=$SOURCEPORT_RANGE_PRI%udp6-recv:$PORT2" 6 udp $PORT1 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
