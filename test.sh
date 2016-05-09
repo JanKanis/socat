@@ -78,8 +78,8 @@ LOCALHOST6=[::1]
 PROTO=$((144+RANDOM/2048))
 PORT=12002
 SOURCEPORT=2002
-SOURCEPORT_RANGE_GOOD=10000:19999
-SOURCEPORT_RANGE_BAD=20000:29999
+SOURCEPORT_RANGE_GOOD=40000:49999
+SOURCEPORT_RANGE_BAD=50000:59999
 
 # SSL certificate contents
 TESTCERT_CONF=testcert.conf
@@ -5798,6 +5798,17 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+NAME=UDP4SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP4-L with SOURCEPORT option"
+if ! eval $NUMCOND; then :; else
+testserversec "$N" "$TEST" "$opts -s" "udp4-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 udp $PORT 0
+fi ;; # NUMCOND
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 NAME=UDP4LOWPORT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
@@ -5855,6 +5866,21 @@ elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
     numCANT=$((numCANT+1))
 else
 testserversec "$N" "$TEST" "$opts -s" "udp6-l:$PORT,reuseaddr" "" "sp=$PORT" "udp6:[::1]:$PORT" 6 udp $PORT 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=UDP6SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP6-L with SOURCEPORT option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+testserversec "$N" "$TEST" "$opts -s" "udp6-l:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 udp $PORT 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7455,6 +7481,21 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+NAME=UDP4RECVFROM_SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP4-RECVFROM with SOURCEPORT option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+testserversec "$N" "$TEST" "$opts -s" "udp4-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4-sendto:127.0.0.1:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 4 udp $PORT 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 NAME=UDP4RECVFROM_LOWPORT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%lowport%*|*%$NAME%*)
@@ -7518,6 +7559,25 @@ PORT3=$PORT
 # we use the forward channel (PORT1) for testing, and have a backward channel
 # (PORT2) to get the data back, so we get the classical echo behaviour
 testserversec "$N" "$TEST" "$opts -s" "udp4-sendto:127.0.0.1:$PORT2%udp4-recv:$PORT1,reuseaddr" "" "sp=$PORT3" "udp4-sendto:127.0.0.1:$PORT1%udp4-recv:$PORT2" 4 udp $PORT1 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=UDP4RECV_SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp4%*|*%ip4%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP4-RECV with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs udp ip4) || ! runsip4 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}UDP4 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+PORT1=$PORT; PORT=$((PORT+1))
+PORT2=$PORT
+# we use the forward channel (PORT1) for testing, and have a backward channel
+# (PORT2) to get the data back, so we get the classical echo behaviour
+testserversec "$N" "$TEST" "$opts -s" "udp4-sendto:127.0.0.1:$PORT2%udp4-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp4-sendto:127.0.0.1:$PORT1,spr=$SOURCEPORT_RANGE_GOOD%udp4-recv:$PORT2" 4 udp $PORT1 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
@@ -7600,6 +7660,21 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+NAME=UDP6RECVFROM_SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP6-RECVFROM with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+testserversec "$N" "$TEST" "$opts -s" "udp6-recvfrom:$PORT,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6-sendto:[::1]:$PORT,spr=$SOURCEPORT_RANGE_GOOD" 6 udp $PORT 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 NAME=UDP6RECVFROM_LOWPORT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%lowport%*|*%$NAME%*)
@@ -7666,6 +7741,25 @@ PORT3=$PORT
 # we use the forward channel (PORT1) for testing, and have a backward channel
 # (PORT2) to get the data back, so we get the classical echo behaviour
 testserversec "$N" "$TEST" "$opts -s" "udp6-sendto:[::1]:$PORT2%udp6-recv:$PORT1,reuseaddr" "" "sp=$PORT3" "udp6-sendto:[::1]:$PORT1%udp6-recv:$PORT2" 6 udp $PORT1 0
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=UDP6RECV_SOURCEPORTRANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%udp%*|*%udp6%*|*%ip6%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of UDP6-RECV with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! feat=$(testaddrs udp ip6) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}UDP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+PORT1=$PORT; PORT=$((PORT+1))
+PORT2=$PORT
+# we use the forward channel (PORT1) for testing, and have a backward channel
+# (PORT2) to get the data back, so we get the classical echo behaviour
+testserversec "$N" "$TEST" "$opts -s" "udp6-sendto:[::1]:$PORT2%udp6-recv:$PORT1,reuseaddr" "spr=$SOURCEPORT_RANGE_GOOD" "spr=$SOURCEPORT_RANGE_BAD" "udp6-sendto:[::1]:$PORT1,spr=$SOURCEPORT_RANGE_GOOD%udp6-recv:$PORT2" 6 udp $PORT1 0
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
