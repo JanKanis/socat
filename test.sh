@@ -5953,6 +5953,22 @@ esac
 PORT=$((PORT+1))
 N=$((N+1))
 
+NAME=OPENSSLTCP4_SOURCEPORT_RANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of SSL-L with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+gentestcert testsrv
+testserversec "$N" "$TEST" "$opts -s" "SSL-L:$PORT,pf=ip4,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv.crt,key=testsrv.key" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "SSL:$LOCALHOST:$PORT,cafile=testsrv.crt,$SOCAT_EGD,spr=$SOURCEPORT_RANGE_PRI" 4 tcp $PORT -1
+ fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
 NAME=OPENSSLTCP4_LOWPORT
 case "$TESTS" in
 *%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp4%*|*%ip4%*|*%openssl%*|*%lowport%*|*%$NAME%*)
@@ -6057,6 +6073,25 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
 else
 gentestcert6 testsrv6
 testserversec "$N" "$TEST" "$opts -s" "SSL-L:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "" "sp=$PORT" "SSL:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD" 6 tcp $PORT -1
+fi ;; # NUMCOND, feats
+esac
+PORT=$((PORT+1))
+N=$((N+1))
+
+NAME=OPENSSLTCP6_SOURCEPORT_RANGE
+case "$TESTS" in
+*%$N%*|*%functions%*|*%security%*|*%tcp%*|*%tcp6%*|*%ip6%*|*%openssl%*|*%sourceport_range%*|*%$NAME%*)
+TEST="$NAME: security of SSL-L over TCP/IPv6 with SOURCEPORT_RANGE option"
+if ! eval $NUMCOND; then :;
+elif ! testaddrs openssl >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
+    $PRINTF "test $F_n $TEST... ${YELLOW}TCP6 not available${NORMAL}\n" $N
+    numCANT=$((numCANT+1))
+else
+gentestcert6 testsrv6
+testserversec "$N" "$TEST" "$opts -s" "SSL-L:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "SSL:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD,spr=$SOUREPORT_RANGE_PRI" 6 tcp $PORT -1
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
