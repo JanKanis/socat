@@ -327,6 +327,7 @@ int xioopen_ipapp_bind(struct single *xfd,
       if (Gettimeofday(&tv, NULL) < 0) {
 	 Warn2("gettimeofday(%p, NULL): %s", &tv, strerror(errno));
       }
+      /* Add in any existing entropy in the rng with random() */
       long seed = random() ^ tv.tv_usec;
       Debug1("srandom(%ld)", seed);
       srandom(seed);
