@@ -6091,7 +6091,7 @@ elif ! feat=$(testaddrs tcp ip6) || ! runsip6 >/dev/null; then
     numCANT=$((numCANT+1))
 else
 gentestcert6 testsrv6
-testserversec "$N" "$TEST" "$opts -s" "SSL-L:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "SSL:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD,spr=$SOUREPORT_RANGE_PRI" 6 tcp $PORT -1
+testserversec "$N" "$TEST" "$opts -s" "SSL-L:$PORT,pf=ip6,reuseaddr,fork,retry=1,$SOCAT_EGD,verify=0,cert=testsrv6.crt,key=testsrv6.key" "spr=$SOURCEPORT_RANGE_PRI" "spr=$SOURCEPORT_RANGE_ALT" "SSL:[::1]:$PORT,cafile=testsrv6.crt,$SOCAT_EGD,spr=$SOURCEPORT_RANGE_PRI" 6 tcp $PORT -1
 fi ;; # NUMCOND, feats
 esac
 PORT=$((PORT+1))
