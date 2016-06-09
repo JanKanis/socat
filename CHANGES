@@ -1,3 +1,11 @@
+new features:
+	The sourceport_range option allows specifying a range of source
+	ports from which socat chooses one that is available at random.
+	This is especially handy when forwarding multiple incoming
+	connections so a single source port does not work. If socat is
+	listening, the option requires the incoming connection to use
+	a source port in the specified range (analogous to the
+	sourceport option).
 
 ####################### V 2.0.0-b9:
 
